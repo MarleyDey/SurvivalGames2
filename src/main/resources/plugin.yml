@@ -1,0 +1,16 @@
+name: SurvivalGames
+version: 1.0.1
+author: Minstrol
+
+main: org.minstrol.survivalgames.SurvivalGames
+description: A survival games plugin, enjoy :)
+
+commands:
+  sg:
+    description: The default command for the SG plugin
+    aliases:
+      - survivalgames
+  sgadmin:
+    description: The default admin command for the SG plugin
+    aliases:
+      - survivalgamesadmin
