@@ -8,7 +8,7 @@ public class SgPlayer {
 
     private Game activeGame;
     private String uuid, name;
-    private int kills = 0;
+    private int kills = 0, deaths = 0;
 
     public SgPlayer(Game game, String uuid, String name){
         this.activeGame = game;
@@ -44,6 +44,15 @@ public class SgPlayer {
     }
 
     /**
+     * Gets the deaths of the players
+     *
+     * @return deaths of player
+     */
+    public int getDeaths() {
+        return deaths;
+    }
+
+    /**
      * Gets the active game of the player
      *
      * @return players active game
@@ -59,6 +68,16 @@ public class SgPlayer {
      */
     public void setKills(int kills){
         this.kills = kills;
+    }
+
+
+    /**
+     * This sets the deaths of the player
+     *
+     * @param deaths deaths of the player
+     */
+    public void setDeaths(int deaths) {
+        this.deaths = deaths;
     }
 
     /**

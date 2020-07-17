@@ -99,4 +99,11 @@ public class GameManager {
         return null;
     }
 
+    /**
+     * This will load the games in the games config file
+     */
+    private void loadExistingGames(){
+        
+    }
+
 }

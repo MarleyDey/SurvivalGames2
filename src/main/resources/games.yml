@@ -1,0 +1,16 @@
+games:
+  maps:
+    name-of-map:
+      chests:
+        - location-string
+        - location-string
+        - location-string
+
+      spawns:
+        - location-string
+        - location-string
+        - location-string
+
+      lobby-location: location-string
+      last-start-time: time-string
+      last-finish-time: time-string
