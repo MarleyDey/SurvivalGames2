@@ -82,7 +82,7 @@ public class ConfigManager {
      *
      * @param configFile The file location
      * @param configFileName The config file name
-     * @return
+     * @return The bukkit configuration file
      */
     private FileConfiguration rldCustomConfig(File configFile, String configFileName) {
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
@@ -107,6 +107,12 @@ public class ConfigManager {
         return config;
     }
 
+    /**
+     * This will save a given file path and config file
+     *
+     * @param configFile The file path to config
+     * @param config The bukkit configuration file
+     */
     private void saveCustomConfig(File configFile, FileConfiguration config) {
         if (config == null || configFile == null) {
             return;
@@ -118,6 +124,13 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * This will check if there is a valid file location to the specific config file
+     *
+     * @param file config file location
+     * @param configFileName The name of the config file
+     * @return The file location of the config
+     */
     private File checkConfigLocation(File file, String configFileName){
         if (file == null) {
             return new File(plugin.getDataFolder(), configFileName);

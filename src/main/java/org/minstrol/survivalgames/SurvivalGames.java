@@ -7,9 +7,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.minstrol.survivalgames.commands.CommandManager;
 import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.players.PlayerManager;
+import org.minstrol.survivalgames.util.ConfigManager;
 
 public class SurvivalGames extends JavaPlugin implements Listener {
 
+    private static ConfigManager configManager;
     private static PlayerManager playerManager;
     private static GameManager gameManager;
 
@@ -28,6 +30,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         //Initialise Managers
+        configManager = new ConfigManager(this);
         playerManager = new PlayerManager();
         gameManager = new GameManager();
 
@@ -77,5 +80,14 @@ public class SurvivalGames extends JavaPlugin implements Listener {
      */
     public static GameManager GetGameManager() {
         return gameManager;
+    }
+
+    /**
+     * Gets the static instance of the config manager
+     *
+     * @return config manager
+     */
+    public static ConfigManager GetConfigManager() {
+        return configManager;
     }
 }
