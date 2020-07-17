@@ -6,7 +6,7 @@ import org.minstrol.survivalgames.game.Game;
 
 public class SgPlayer {
 
-    private Game activeGame = null;
+    private Game activeGame;
     private String uuid, name;
     private int kills = 0;
 
@@ -16,30 +16,65 @@ public class SgPlayer {
         this.name = name;
     }
 
+    /**
+     * Gets the name of the player
+     *
+     * @return name of bukkit player
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Gets the uuid of the player
+     *
+     * @return uuid of player
+     */
     public String getUuid() {
         return uuid;
     }
 
+    /**
+     * Gets the kills of the players
+     *
+     * @return kills of player
+     */
     public int getKills() {
         return kills;
     }
 
+    /**
+     * Gets the active game of the player
+     *
+     * @return players active game
+     */
     public Game getActiveGame() {
         return activeGame;
     }
 
+    /**
+     * This sets the kills of the player
+     *
+     * @param kills Kills of the player
+     */
     public void setKills(int kills){
         this.kills = kills;
     }
 
+    /**
+     * This sets the active game instance of the player
+     *
+     * @param activeGame Game instance player is in
+     */
     public void setActiveGame(Game activeGame) {
         this.activeGame = activeGame;
     }
 
+    /**
+     * Gets the bukkit player instance of the sg player
+     *
+     * @return Bukkit player of Sg Player
+     */
     public Player getBukkitPlayer(){
         for (Player pl : Bukkit.getOnlinePlayers()){
             if (pl.getUniqueId().toString().equalsIgnoreCase(uuid))return pl;

@@ -1,11 +1,17 @@
 package org.minstrol.survivalgames;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.minstrol.survivalgames.commands.CommandManager;
+import org.minstrol.survivalgames.game.GameManager;
+import org.minstrol.survivalgames.players.PlayerManager;
 
 public class SurvivalGames extends JavaPlugin implements Listener {
+
+    private static PlayerManager playerManager;
+    private static GameManager gameManager;
 
     private Listener[] listeners = new Listener[]{
 
@@ -21,6 +27,10 @@ public class SurvivalGames extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        //Initialise Managers
+        playerManager = new PlayerManager();
+        gameManager = new GameManager();
+
         //Register game events
         registerEvents();
 
@@ -49,5 +59,23 @@ public class SurvivalGames extends JavaPlugin implements Listener {
         for (String name : commandNames){
             Bukkit.getPluginCommand(name).setExecutor(commandManager);
         }
+    }
+
+    /**
+     * Gets the static instance of the player manager
+     *
+     * @return player manager
+     */
+    public static PlayerManager GetPlayerManager(){
+        return playerManager;
+    }
+
+    /**
+     * Gets the static instance of the game manager
+     *
+     * @return game manager
+     */
+    public static GameManager GetGameManager() {
+        return gameManager;
     }
 }

@@ -30,36 +30,77 @@ public class Game {
         this.nChestLocations = chestLocations.length;
     }
 
+    /**
+     * Gets the name of the game
+     *
+     * @return name of the game
+     */
     public String getName() { return name; }
 
+    /**
+     * Gets the game status of the game
+     *
+     * @return status of the game
+     */
     public GameStatus getGameStatus() { return gameStatus; }
 
+    /**
+     * This sets the status of the game
+     *
+     * @param gameStatus The new game status
+     */
     public void setGameStatus(GameStatus gameStatus) {
         this.gameStatus = gameStatus;
     }
 
+    /**
+     * Gets the Sg player instances of the game
+     *
+     * @return List of Sg players
+     */
     public List<SgPlayer> getPlayers() {
         //TODO
         return null;
     }
 
+    /**
+     * This will restock all the checks of the map
+     */
     private void restockChests(){
         //TODO
     }
 
+    /**
+     * This will send all the players of the game back to their spawn points
+     */
     private void sendPlayersToSpawn(){
         //TODO
     }
 
+    /**
+     * This will send all the players of the game back to the lobby location
+     */
     private void sendPlayersToLobby(){
         //TODO
     }
 
+    /**
+     * This will create a new instance of Sg Player for this game
+     *
+     * @param player bukkit player
+     * @return if the player joined successfully
+     */
     public boolean playerJoin(Player player){
         //TODO
         return false;
     }
 
+    /**
+     * This will remove the instance of Sg Player for this game
+     *
+     * @param player bukkit player
+     * @return if the player left successfully
+     */
     public boolean playerLeave(Player player){
         //TODO
         return false;
