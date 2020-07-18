@@ -10,6 +10,7 @@ public class SgPlayer {
     private Game activeGame;
     private String uuid, name;
     private int kills = 0, deaths = 0;
+    private Location spawnLocation;
 
     public SgPlayer(Game game, String uuid, String name){
         this.activeGame = game;
@@ -90,10 +91,22 @@ public class SgPlayer {
         this.activeGame = activeGame;
     }
 
-    public Location getSpawnLocation(){
-        //TODO
+    /**
+     * This will set the spawn location of the SG Player
+     *
+     * @param location Spawn location of player
+     */
+    public void setSpawnLocation(Location location){
+        this.spawnLocation = location;
+    }
 
-        return null;
+    /**
+     * This gets the spawn location of the SG player
+     *
+     * @return spawn location of player
+     */
+    public Location getSpawnLocation(){
+        return this.spawnLocation;
     }
 
     /**

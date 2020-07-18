@@ -17,7 +17,7 @@ public class PlayerManager {
     /**
      * Get if player manager contains the player
      *
-     * @param sgPlayer
+     * @param sgPlayer The Survival games player instance
      * @return player manager contains player
      */
     private boolean containsPlayer(SgPlayer sgPlayer){

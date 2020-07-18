@@ -1,38 +1,44 @@
 package org.minstrol.survivalgames.game;
 
+import com.google.common.util.concurrent.Runnables;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class Game {
 
-    private int nSpawnLocations, nChestLocations;
-    private Location[] spawnLocations, chestLocations;
+    private String name;
+    private int[] dimensions;
     private Location lobbyLocation;
+    private int maxPlayers, minPlayers, waitingCountdown = 10, waitingCountdownTask = 0;
+    private Location[] spawnLocations, chestLocations;
+    private GameStatus gameStatus = GameStatus.STOPPED;
 
     private PlayerManager playerManager;
 
-    private GameStatus gameStatus = GameStatus.STOPPED;
-
     private List<String> players;
-    private String name;
 
-    public Game(Location[] spawnLocations, Location[] chestLocations, Location lobbyLocation, String name){
+    public Game(Location[] spawnLocations, Location[] chestLocations, Location lobbyLocation, String name,
+                int[] dimensions, int minPlayers, int maxPlayers){
         this.playerManager = SurvivalGames.GetPlayerManager();
         this.spawnLocations = spawnLocations;
         this.chestLocations = chestLocations;
         this.lobbyLocation = lobbyLocation;
         this.name = name;
+        this.dimensions = dimensions;
+        this.maxPlayers = maxPlayers;
+        this.minPlayers = minPlayers;
 
         //Initialise starting values of game instance
         this.players = new ArrayList<String>();
-        this.nSpawnLocations = spawnLocations.length;
-        this.nChestLocations = chestLocations.length;
     }
 
     /**
@@ -59,6 +65,60 @@ public class Game {
     }
 
     /**
+     * This gets the spawn locations for the players in the game
+     *
+     * @return Array of spawn locations of players
+     */
+    public Location[] getSpawnLocations() {
+        return spawnLocations;
+    }
+
+    /**
+     * This gets the chest locations within the game
+     *
+     * @return The array of chest locations
+     */
+    public Location[] getChestLocations() {
+        return chestLocations;
+    }
+
+    /**
+     * This gets the lobby spawn location of the game
+     *
+     * @return The location of the game lobby
+     */
+    public Location getLobbyLocation() {
+        return lobbyLocation;
+    }
+
+    /**
+     * Gets the dimension cords of the game map
+     *
+     * @return array of dimensions of map
+     */
+    public int[] getMapDimensions() {
+        return dimensions;
+    }
+
+    /**
+     * Gets the maximum amount of players the game can handle
+     *
+     * @return Max number of players
+     */
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    /**
+     * Gets the minimum amount of players needed to start the game
+     *
+     * @return Minimum numbers of players to start game
+     */
+    public int getMinPlayers() {
+        return minPlayers;
+    }
+
+    /**
      * Gets the Sg player instances of the game
      *
      * @return List of Sg players
@@ -72,25 +132,115 @@ public class Game {
         return sgPlayers;
     }
 
+
+    public void start(){
+        if (getGameStatus() != GameStatus.STOPPED || getGameStatus() != GameStatus.RESETTING){
+            Bukkit.getLogger().log(Level.WARNING, "Game is already running!");
+            return;
+        }
+
+        //Start waiting for the players to join
+        setGameStatus(GameStatus.WAITING);
+
+        boolean enoughPlayers = false;
+
+        //Lobby waiting process
+        while (!enoughPlayers) {
+
+            Thread playerWaitingThread = new Thread(new PlayerWaiter(minPlayers));
+            playerWaitingThread.start();
+
+            //Wait for enough players to join the game
+            try {
+                playerWaitingThread.join();
+            } catch (InterruptedException ex) {
+                Bukkit.getLogger().log(Level.SEVERE, "Waiting for players to join thread interrupted", ex);
+                return;
+            }
+
+            Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
+            if (plugin == null) {
+                Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
+                return;
+            }
+
+            //Enough players have joined, start game countdown
+            enoughPlayers = true;
+            broadcastMsg("Attempting to start the game..."); //TODO Make configurable
+
+
+            waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    if (waitingCountdown <= 0){
+                        Bukkit.getScheduler().cancelTask(waitingCountdownTask);
+                        return;
+                    }
+
+                    broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
+                    waitingCountdown--;
+                }
+            }, 0L, 20L);
+
+            if (players.size() < minPlayers){
+                enoughPlayers = false;
+            }
+        }
+
+        //Waiting process is over, we can start the game
+
+
+
+    }
+
+    public void stop(){
+
+    }
+
+    public void restart(){
+
+    }
+
     /**
      * This will restock all the checks of the map
      */
     private void restockChests(){
-        //TODO
+        MapEnvironment.RestockChests(this);
+        broadcastMsg("All chests have been restocked!"); //TODO Configurable
+
+    }
+
+    private void assignPlayerSpawns(){
+        for (SgPlayer sgPlayer : getPlayers()){
+            
+        }
     }
 
     /**
      * This will send all the players of the game back to their spawn points
      */
     private void sendPlayersToSpawn(){
-        //TODO
+        for (SgPlayer sgPlayer : getPlayers()){
+            Location spawnLocation = sgPlayer.getSpawnLocation();
+
+            if (spawnLocation == null)continue;
+            sgPlayer.getBukkitPlayer().teleport(spawnLocation);
+        }
     }
 
     /**
      * This will send all the players of the game back to the lobby location
      */
     private void sendPlayersToLobby(){
-        //TODO
+        for (SgPlayer sgPlayer : getPlayers()){
+            sgPlayer.getBukkitPlayer().teleport(lobbyLocation);
+        }
+    }
+
+    public void broadcastMsg(String message){
+        for (SgPlayer sgPlayer : getPlayers()){
+            sgPlayer.getBukkitPlayer().sendMessage(message);
+        }
     }
 
     /**
@@ -99,9 +249,13 @@ public class Game {
      * @param player bukkit player
      * @return if the player joined successfully
      */
-    public boolean playerJoin(Player player){
-        //TODO
-        return false;
+    public void playerJoin(Player player){
+        playerManager.addPlayer(player, this);
+
+        //Player joins while game is waiting for players
+        if (getGameStatus() == GameStatus.WAITING){
+            //TODO Display nice join message
+        }
     }
 
     /**
@@ -110,8 +264,26 @@ public class Game {
      * @param player bukkit player
      * @return if the player left successfully
      */
-    public boolean playerLeave(Player player){
-        //TODO
-        return false;
+    public void playerLeave(Player player){
+        playerManager.removePlayer(player);
     }
+
+    private class PlayerWaiter implements Runnable {
+        private int minPlayers;
+
+        public PlayerWaiter(int minPlayers){
+            this.minPlayers = minPlayers;
+        }
+
+        @Override
+        public void run() {
+            while (players.size() < minPlayers){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {}
+                Thread.yield();
+            }
+        }
+    }
+
 }

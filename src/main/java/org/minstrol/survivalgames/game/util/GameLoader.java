@@ -45,7 +45,7 @@ public class GameLoader {
             return null;
         }
 
-        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName);
+        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName, getMapDimensions());
     }
 
     private Location[] getChestLocations(){
@@ -58,6 +58,25 @@ public class GameLoader {
 
     private Location getLobbyLocation(){
         return ConfigManager.GetLocation(gameConfig, configPath + "lobby-location");
+    }
+
+    /**
+     * This gets the dimensions of the game map from the config and loads them
+     * into a single integer array
+     *
+     * @return array of cords of the game map
+     */
+    private int[] getMapDimensions(){
+        int[] dimensions = new int[6];
+
+        dimensions[0] = gameConfig.getInt(configPath + "dimensions.x1");
+        dimensions[1] = gameConfig.getInt(configPath + "dimensions.x2");
+        dimensions[2] = gameConfig.getInt(configPath + "dimensions.y1");
+        dimensions[3] = gameConfig.getInt(configPath + "dimensions.y2");
+        dimensions[4] = gameConfig.getInt(configPath + "dimensions.z1");
+        dimensions[5] = gameConfig.getInt(configPath + "dimensions.z2");
+
+        return dimensions;
     }
 
 }
