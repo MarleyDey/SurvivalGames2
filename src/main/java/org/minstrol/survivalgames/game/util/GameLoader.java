@@ -1,43 +1,63 @@
 package org.minstrol.survivalgames.game.util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.util.ConfigManager;
-import org.minstrol.survivalgames.util.ParseConverter;
 
-import java.util.List;
+import java.util.logging.Level;
 
 public class GameLoader {
 
     private String gameName, configPath;
-    private ConfigManager configManager;
+    private FileConfiguration gameConfig;
 
     public GameLoader(String name){
         this.gameName = name;
         this.configPath = "games.maps." + name + ".";
-
-        this.configManager = SurvivalGames.GetConfigManager();
+        this.gameConfig = SurvivalGames.GetConfigManager().getGameConfig();
     }
 
-    public boolean loadGame(){
+    public Game loadGame(){
+        Location[] chestLocations = getChestLocations();
 
+        if (chestLocations == null){
+            Bukkit.getLogger().log(Level.SEVERE, "The game " + gameName +
+                    " could not be loaded due to one or more invalid chest locations. Try setting them up again!");
+            return null;
+        }
 
+        Location[] spawnLocations = getSpawnLocations();
 
+        if (spawnLocations == null){
+            Bukkit.getLogger().log(Level.SEVERE, "The game " + gameName +
+                    " could not be loaded due to one or more invalid spawn locations. Try setting them up again!");
+            return null;
+        }
 
+        Location lobbyLocation = getLobbyLocation();
+
+        if (lobbyLocation == null){
+            Bukkit.getLogger().log(Level.SEVERE, "The game " + gameName +
+                    " could not be loaded due to an invalid lobby location. Try setting the location again!");
+            return null;
+        }
+
+        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName);
     }
 
     private Location[] getChestLocations(){
-        List<String> locationStrs
-                = configManager.getGameConfig().getStringList(gameName + "chests");
+        return ConfigManager.GetLocations(gameConfig,  configPath + "chests");
+    }
 
-        if (locationStrs.isEmpty())return null;
+    private Location[] getSpawnLocations(){
+        return ConfigManager.GetLocations(gameConfig,  configPath + "spawns");
+    }
 
-        for (String locStr : locationStrs){
-            Location chestLocation = ParseConverter.StringToLocation(locStr);
-
-            if (chestLocation == null)return null;
-        }
-
+    private Location getLobbyLocation(){
+        return ConfigManager.GetLocation(gameConfig, configPath + "lobby-location");
     }
 
 }

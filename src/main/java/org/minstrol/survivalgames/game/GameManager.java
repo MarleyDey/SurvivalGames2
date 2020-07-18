@@ -1,7 +1,14 @@
 package org.minstrol.survivalgames.game;
 
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.game.util.GameLoader;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
 
 public class GameManager {
 
@@ -9,6 +16,9 @@ public class GameManager {
 
     public GameManager(){
         games = new ArrayList<Game>();
+
+        //Load the games that are already present in the games config
+        loadExistingGames();
     }
 
     /**
@@ -59,7 +69,15 @@ public class GameManager {
     public void addGame(String name){
         if (containsGame(name))return;
 
-        //TODO Create game instance
+        GameLoader gameLoader = new GameLoader(name);
+        Game game = gameLoader.loadGame();
+
+        if (game == null){
+            Bukkit.getLogger().log(Level.SEVERE, "The game " + name + " could not be loaded!");
+            return;
+        }
+
+        games.add(game);
     }
 
     /**
@@ -99,11 +117,32 @@ public class GameManager {
         return null;
     }
 
+    public String[] getGameNames(){
+        FileConfiguration gameConfig
+                = SurvivalGames.GetConfigManager().getGameConfig();
+
+        Set<String> gameNames = gameConfig.getConfigurationSection("games.maps").getKeys(false);
+        return (String[]) gameNames.toArray();
+    }
+
+
     /**
      * This will load the games in the games config file
      */
     private void loadExistingGames(){
-        
+        for (String name : getGameNames()){
+
+            GameLoader gameLoader = new GameLoader(name);
+            Game game = gameLoader.loadGame();
+
+            if (game == null){
+                Bukkit.getLogger().log(Level.SEVERE, "The game " + name + " could not be loaded!");
+                continue;
+            }
+
+            games.add(game);
+            Bukkit.getLogger().log(Level.FINE, "Game " + name + " has been found and loaded!");
+        }
     }
 
 }

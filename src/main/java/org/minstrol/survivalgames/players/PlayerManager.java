@@ -141,4 +141,20 @@ public class PlayerManager {
                 players.remove(sgPlayer);
         }
     }
+
+    /**
+     * This gets the Sg Player instances from a game
+     *
+     * @param game Game of SgPlayers
+     */
+    public List<SgPlayer> getSgPlayersFromGame(Game game){
+        List<SgPlayer> gamePlayers = new ArrayList<SgPlayer>();
+
+        for (SgPlayer sgPlayer : players){
+            if (sgPlayer == null)continue;
+            if (sgPlayer.getActiveGame() != null && sgPlayer.getActiveGame() == game)
+                gamePlayers.add(sgPlayer);
+        }
+        return gamePlayers;
+    }
 }

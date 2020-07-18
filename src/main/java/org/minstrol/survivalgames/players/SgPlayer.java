@@ -1,6 +1,7 @@
 package org.minstrol.survivalgames.players;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.minstrol.survivalgames.game.Game;
 
@@ -87,6 +88,12 @@ public class SgPlayer {
      */
     public void setActiveGame(Game activeGame) {
         this.activeGame = activeGame;
+    }
+
+    public Location getSpawnLocation(){
+        //TODO
+
+        return null;
     }
 
     /**

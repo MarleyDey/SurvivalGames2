@@ -3,10 +3,21 @@ package org.minstrol.survivalgames.util;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 
 public class ParseConverter {
 
+    /**
+     * This converts and parses a location to a string format
+     *
+     * @param location bukkit location
+     *
+     * @return The string version of the location
+     */
     public static String LocationToString(Location location){
         return location.getWorld().getName() + ";" +
                 location.getX() + ";" +
@@ -16,6 +27,13 @@ public class ParseConverter {
                 location.getYaw();
     }
 
+    /**
+     * This converts a string and parses it into a location instance
+     *
+     * @param locationString string of location
+     *
+     * @return bukkit location from string
+     */
     public static Location StringToLocation(String locationString){
         String[] locStrs = locationString.split(";");
 
@@ -37,5 +55,36 @@ public class ParseConverter {
                     " yaw:" + locStrs[5], ex);
             return null;
         }
+    }
+
+    /**
+     * This converts a data instance into a string format using a simple date
+     * format
+     *
+     * @param date Date to convert
+     *
+     * @return The string version of the date
+     */
+    public static String DateToString(Date date){
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+        return dateFormat.format(date);
+    }
+
+
+    /**
+     * This converts a string into a date instance
+     *
+     * @param dateString The string version of a date
+     *
+     * @return The Date instance of the string
+     */
+    public static Date StringToDate(String dateString){
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+        try {
+            return dateFormat.parse(dateString);
+        } catch (ParseException ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "String could not be parsed to date format", ex);
+        }
+        return null;
     }
 }

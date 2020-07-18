@@ -1,10 +1,13 @@
 package org.minstrol.survivalgames.util;
 
+import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.*;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 
 public class ConfigManager {
@@ -82,6 +85,7 @@ public class ConfigManager {
      *
      * @param configFile The file location
      * @param configFileName The config file name
+     *
      * @return The bukkit configuration file
      */
     private FileConfiguration rldCustomConfig(File configFile, String configFileName) {
@@ -129,6 +133,7 @@ public class ConfigManager {
      *
      * @param file config file location
      * @param configFileName The name of the config file
+     *
      * @return The file location of the config
      */
     private File checkConfigLocation(File file, String configFileName){
@@ -136,6 +141,72 @@ public class ConfigManager {
             return new File(plugin.getDataFolder(), configFileName);
         }
         return file;
+    }
+
+    /**
+     * This gets an array of Locations from the config given a
+     * config file and the path to the location lists
+     *
+     * @param config The config containing the locations list
+     * @param path The path in the config to the locations
+     *
+     * @return The array of found locations
+     */
+    public static Location[] GetLocations(FileConfiguration config, String path){
+        List<String> locationStrs
+                = config.getStringList(path);
+
+        if (locationStrs.isEmpty())return null;
+
+        Location[] locations = new Location[locationStrs.size()];
+
+        int i = 0;
+        for (String locStr : locationStrs){
+            Location foundLocation = ParseConverter.StringToLocation(locStr);
+
+            if (foundLocation == null)return null;
+
+            locations[i] = foundLocation;
+            i++;
+        }
+
+        return locations;
+    }
+
+    /**
+     * This gets a location in the config from a given path
+     *
+     * @param config The config containing the location
+     * @param path The path to the location
+     *
+     * @return The location in the config
+     */
+    public static Location GetLocation(FileConfiguration config, String path){
+        String locationStr = config.getString(path);
+
+        if (locationStr == null || locationStr.isEmpty()){
+            return null;
+        }
+
+        return ParseConverter.StringToLocation(locationStr);
+    }
+
+    /**
+     * This gets a date in the config from a given path
+     *
+     * @param config The config containing the date
+     * @param path The path to the date
+     *
+     * @return The date in the config
+     */
+    public static Date GetDate(FileConfiguration config, String path){
+        String dateStr = config.getString(path);
+
+        if (dateStr == null || dateStr.isEmpty()){
+            return null;
+        }
+
+        return ParseConverter.StringToDate(dateStr);
     }
 
 
