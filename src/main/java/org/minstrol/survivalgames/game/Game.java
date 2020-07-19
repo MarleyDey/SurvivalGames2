@@ -352,7 +352,7 @@ public class Game {
      */
     private void sendPlayersToGameLobby(){
         for (SgPlayer sgPlayer : getPlayers()){
-            Location spawnLocation = SurvivalGames.getLobby().getSpawnLocation();
+            Location spawnLocation = SurvivalGames.GetLobby().getSpawnLocation();
 
             if (spawnLocation == null){
                 Bukkit.getLogger().log(Level.SEVERE, "The game lobby has no spawn point set! Stopping game..");

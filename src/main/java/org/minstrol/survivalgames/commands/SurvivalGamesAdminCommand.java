@@ -3,8 +3,11 @@ package org.minstrol.survivalgames.commands;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class SurvivalGamesAdminCommand extends SgCommand {
+
+    private boolean settingLobby
 
     public String getCommand() {
         return "sgadmin";
@@ -37,6 +40,14 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
         }
     }
+
+    private void setupGame(Player player, String name, int minPlayers, int maxPlayers){
+        player.sendMessage("You are setting up game: " + name);
+        player.sendMessage("1) Set up lobby spawn point - type '/sgadmin setup' to set lobby spawn location");
+
+    }
+
+
 
     private void sendHelpMessage(CommandSender sender){
         sender.sendMessage(ChatColor.BLUE +         "-----------" + ChatColor.YELLOW + " SG Admin Help " + ChatColor.BLUE + "----------");

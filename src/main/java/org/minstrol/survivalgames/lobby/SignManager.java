@@ -1,10 +1,17 @@
 package org.minstrol.survivalgames.lobby;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.util.ConfigManager;
+import org.minstrol.survivalgames.util.ParseConverter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,34 +20,100 @@ import java.util.logging.Level;
 
 public class SignManager {
 
-    private List<Location> signLocations;
+    private Plugin plugin;
     private ConfigManager configManager;
     private FileConfiguration lobbyConfig;
+    private int signUpdatingTask = 0;
 
-    public SignManager(){
+    public SignManager(Plugin plugin) {
+        this.plugin = plugin;
+
         configManager = SurvivalGames.GetConfigManager();
         lobbyConfig = configManager.getLobbyConfig();
 
-        signLocations = Arrays.asList();
 
+        //Start updating the lobby signs every half-second
+        updateSignsTask();
     }
 
-    private List<String> getSignLocations(){
-        List<String> locationStrings = new ArrayList<>();
-
+    private List<Location> getSignLocations() {
         Location[] locationStrs = ConfigManager.GetLocations(lobbyConfig, "lobby.sign");
 
-        if (locationStrs == null){
+        if (locationStrs == null) {
             Bukkit.getLogger().log(Level.WARNING, "No sign location were found in the lobby!");
             return null;
         }
 
-        locationStrings = (List<String>) Arrays.asList(locationStrs);
-
-        return
-
-
-
+        return Arrays.asList(locationStrs);
     }
 
+    private void updateSignsTask() {
+        signUpdatingTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            List<Location> signLocations = getSignLocations();
+
+            if (signLocations == null) {
+                Bukkit.getLogger().log(Level.WARNING, "No lobby signs could be found!");
+                Bukkit.getScheduler().cancelTask(signUpdatingTask);
+                return;
+            }
+
+            for (Location signLoc : signLocations) {
+                World world = signLoc.getWorld();
+                Sign sign = (Sign) world.getBlockAt(signLoc).getState();
+
+                String[] signLines = sign.getLines();
+
+                if (!signLines[0].equals(ChatColor.GOLD + "[SG]")) {
+                    removeSign(signLoc);
+                    continue;
+                }
+
+                Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
+                if (game == null) {
+                    Bukkit.getLogger().log(Level.WARNING, "On an attempt to update a sign, the game " +
+                            signLines[1] +
+                            " could not be found!");
+                    removeSign(signLoc);
+                    continue;
+                }
+
+                sign.setLine(2, game.getGameStatus().getFormattedName());
+                sign.setLine(3, "[" + game.getPlayers().size() + "/" + game.getMaxPlayers() + "]");
+
+                sign.update();
+            }
+        }, 0L, 10L);
+    }
+
+    public void stopUpdatingSigns() {
+        Bukkit.getScheduler().cancelTask(signUpdatingTask);
+    }
+
+    public void addSign(Location location) {
+        if (lobbyConfig.get("lobby.signs") == null) {
+            List<String> signLocs = new ArrayList<>();
+            signLocs.add(ParseConverter.LocationToString(location));
+
+            lobbyConfig.set("lobby.signs", signLocs);
+            configManager.saveLobbyConfig();
+            return;
+        }
+
+        List<String> signLocs = lobbyConfig.getStringList("lobby.signs");
+        signLocs.add(ParseConverter.LocationToString(location));
+        lobbyConfig.set("lobby.signs", signLocs);
+        configManager.saveLobbyConfig();
+    }
+
+    public void removeSign(Location location) {
+        if (lobbyConfig.get("lobby.signs") == null) return;
+        List<String> signLocs = lobbyConfig.getStringList("lobby.signs");
+
+        String locStr = ParseConverter.LocationToString(location);
+        if (!signLocs.contains(locStr)) return;
+        signLocs.remove(locStr);
+
+        lobbyConfig.set("lobby.signs", signLocs);
+        configManager.saveLobbyConfig();
+    }
 }

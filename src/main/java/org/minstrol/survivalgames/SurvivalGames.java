@@ -8,6 +8,7 @@ import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.listeners.PlayerDeathListener;
 import org.minstrol.survivalgames.listeners.PlayerMovingListener;
 import org.minstrol.survivalgames.lobby.Lobby;
+import org.minstrol.survivalgames.lobby.SignManager;
 import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.util.ConfigManager;
 
@@ -15,6 +16,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
 
     private static ConfigManager configManager;
     private static PlayerManager playerManager;
+    private static SignManager signManager;
     private static GameManager gameManager;
 
     private static Lobby lobby;
@@ -36,6 +38,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     public void onEnable() {
         //Initialise Managers
         configManager = new ConfigManager(this);
+        signManager = new SignManager(this);
         playerManager = new PlayerManager();
         gameManager = new GameManager();
 
@@ -51,6 +54,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         GetGameManager().closeGames();
+        GetSignManager().stopUpdatingSigns();
     }
 
     /**
@@ -103,7 +107,11 @@ public class SurvivalGames extends JavaPlugin implements Listener {
      *
      * @return The lobby class
      */
-    public static Lobby getLobby() {
+    public static Lobby GetLobby() {
         return lobby;
+    }
+
+    public static SignManager GetSignManager() {
+        return signManager;
     }
 }
