@@ -1,6 +1,5 @@
 package org.minstrol.survivalgames.game;
 
-import com.google.common.util.concurrent.Runnables;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -18,6 +17,7 @@ public class Game {
     private String name;
     private int[] dimensions;
     private Location lobbyLocation;
+    private boolean playersCanMove = true;
     private int maxPlayers, minPlayers, waitingCountdown = 10, waitingCountdownTask = 0;
     private Location[] spawnLocations, chestLocations;
     private GameStatus gameStatus = GameStatus.STOPPED;
@@ -118,6 +118,11 @@ public class Game {
         return minPlayers;
     }
 
+    //TODO put this in player move listener
+    public boolean isPlayersCanMove() {
+        return playersCanMove;
+    }
+
     /**
      * Gets the Sg player instances of the game
      *
@@ -139,9 +144,18 @@ public class Game {
             return;
         }
 
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
+        if (plugin == null) {
+            Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
+
+            forceStop();
+            return;
+        }
+
         //Start waiting for the players to join
         setGameStatus(GameStatus.WAITING);
 
+        waitingCountdown = 10; //TODO Make configurable
         boolean enoughPlayers = false;
 
         //Lobby waiting process
@@ -155,12 +169,8 @@ public class Game {
                 playerWaitingThread.join();
             } catch (InterruptedException ex) {
                 Bukkit.getLogger().log(Level.SEVERE, "Waiting for players to join thread interrupted", ex);
-                return;
-            }
 
-            Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
-            if (plugin == null) {
-                Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
+                forceStop();
                 return;
             }
 
@@ -169,17 +179,14 @@ public class Game {
             broadcastMsg("Attempting to start the game..."); //TODO Make configurable
 
 
-            waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    if (waitingCountdown <= 0){
-                        Bukkit.getScheduler().cancelTask(waitingCountdownTask);
-                        return;
-                    }
-
-                    broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
-                    waitingCountdown--;
+            waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+                if (waitingCountdown <= 0){
+                    Bukkit.getScheduler().cancelTask(waitingCountdownTask);
+                    return;
                 }
+
+                broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
+                waitingCountdown--;
             }, 0L, 20L);
 
             if (players.size() < minPlayers){
@@ -188,12 +195,38 @@ public class Game {
         }
 
         //Waiting process is over, we can start the game
+        setGameStatus(GameStatus.STARTING);
+
+        //Assign each player a spawn position
+        assignPlayerSpawns();
+
+        //Send players to their spawn positions
+        playersCanMove = false;
+        sendPlayersToSpawn();
+
+        waitingCountdown = 5; //TODO Make configurable
+        waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            if (waitingCountdown <= 0){
+                Bukkit.getScheduler().cancelTask(waitingCountdownTask);
+                return;
+            }
+
+            broadcastMsg("Prepare to run in " + waitingCountdown); //TODO  Make configurable
+            waitingCountdown--;
+        }, 0L, 20L);
+
+        playersCanMove = true;
+
 
 
 
     }
 
     public void stop(){
+
+    }
+
+    public void forceStop(){
 
     }
 
@@ -211,8 +244,17 @@ public class Game {
     }
 
     private void assignPlayerSpawns(){
+        int i = 0;
         for (SgPlayer sgPlayer : getPlayers()){
-            
+            if (spawnLocations.length <= i){
+                Bukkit.getLogger().log(Level.SEVERE, "There are more players than spawn points! Stopping game..");
+
+                //Force stop the game to prevent spawn error
+                forceStop();
+                return;
+            }
+
+            sgPlayer.setSpawnLocation(spawnLocations[i]);
         }
     }
 
@@ -223,7 +265,13 @@ public class Game {
         for (SgPlayer sgPlayer : getPlayers()){
             Location spawnLocation = sgPlayer.getSpawnLocation();
 
-            if (spawnLocation == null)continue;
+            if (spawnLocation == null){
+                Bukkit.getLogger().log(Level.SEVERE, "Player " + sgPlayer.getName() + " has no spawn point set! Stopping game..");
+
+                //Force stop the game to prevent spawn error
+                forceStop();
+                return;
+            }
             sgPlayer.getBukkitPlayer().teleport(spawnLocation);
         }
     }
