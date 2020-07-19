@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.minstrol.survivalgames.commands.CommandManager;
 import org.minstrol.survivalgames.game.GameManager;
+import org.minstrol.survivalgames.listeners.PlayerMovingListener;
 import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.util.ConfigManager;
 
@@ -15,7 +16,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     private static GameManager gameManager;
 
     private Listener[] listeners = new Listener[]{
-
+            new PlayerMovingListener()
     };
 
     private CommandManager commandManager
@@ -42,7 +43,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        super.onDisable();
+        GetGameManager().closeGames();
     }
 
     /**

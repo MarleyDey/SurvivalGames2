@@ -145,4 +145,10 @@ public class GameManager {
         }
     }
 
+    public void closeGames(){
+        for (Game game : games){
+            game.forceStop(); //TODO Do thread safe stuff
+        }
+    }
+
 }

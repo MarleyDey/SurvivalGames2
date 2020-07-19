@@ -11,6 +11,7 @@ public class SgPlayer {
     private String uuid, name;
     private int kills = 0, deaths = 0;
     private Location spawnLocation;
+    private boolean isAlive = true;
 
     public SgPlayer(Game game, String uuid, String name){
         this.activeGame = game;
@@ -61,6 +62,25 @@ public class SgPlayer {
      */
     public Game getActiveGame() {
         return activeGame;
+    }
+
+    /**
+     * This gets whether a player is declared as alive in
+     * a game
+     *
+     * @return Whether a player is alive in the game
+     */
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    /**
+     * This sets whether a player is alive in a game
+     *
+     * @param alive Player is alive or has 'died'
+     */
+    public void setAlive(boolean alive) {
+        isAlive = alive;
     }
 
     /**

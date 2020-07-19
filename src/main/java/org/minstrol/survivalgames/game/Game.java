@@ -1,6 +1,7 @@
 package org.minstrol.survivalgames.game;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -9,6 +10,7 @@ import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -18,9 +20,12 @@ public class Game {
     private int[] dimensions;
     private Location lobbyLocation;
     private boolean playersCanMove = true;
-    private int maxPlayers, minPlayers, waitingCountdown = 10, waitingCountdownTask = 0;
+    private int maxPlayers, minPlayers,
+            waitingCountdown = 10,
+            waitingCountdownTask = 0;
     private Location[] spawnLocations, chestLocations;
     private GameStatus gameStatus = GameStatus.STOPPED;
+    private PlayerWaiter playerWaitingThread;
 
     private PlayerManager playerManager;
 
@@ -137,6 +142,20 @@ public class Game {
         return sgPlayers;
     }
 
+    /**
+     * Gets the Sg player that are alive in the game
+     *
+     * @return List of alive Sg players
+     */
+    public List<SgPlayer> getAlivePlayers() {
+        List<SgPlayer> alivePlayers = new ArrayList<>();
+        for (SgPlayer player : getPlayers()){
+            if (player.isAlive())alivePlayers.add(player);
+        }
+
+        return alivePlayers;
+    }
+
 
     public void start(){
         if (getGameStatus() != GameStatus.STOPPED || getGameStatus() != GameStatus.RESETTING){
@@ -161,12 +180,11 @@ public class Game {
         //Lobby waiting process
         while (!enoughPlayers) {
 
-            Thread playerWaitingThread = new Thread(new PlayerWaiter(minPlayers));
-            playerWaitingThread.start();
+            playerWaitingThread = new PlayerWaiter(minPlayers);
 
             //Wait for enough players to join the game
             try {
-                playerWaitingThread.join();
+                playerWaitingThread.getThread().join(); //I dont know if this will work
             } catch (InterruptedException ex) {
                 Bukkit.getLogger().log(Level.SEVERE, "Waiting for players to join thread interrupted", ex);
 
@@ -176,6 +194,8 @@ public class Game {
 
             //Enough players have joined, start game countdown
             enoughPlayers = true;
+
+            restockChests(false);
             broadcastMsg("Attempting to start the game..."); //TODO Make configurable
 
 
@@ -216,30 +236,80 @@ public class Game {
         }, 0L, 20L);
 
         playersCanMove = true;
+        setGameStatus(GameStatus.INGAME);
 
-
-
-
+        /**
+         * This is the end of this method, instead the stop method is called
+         * by the player death event when only one player is left
+         */
     }
 
     public void stop(){
+        playerWaitingThread.exit();
+
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
+        if (plugin == null) {
+            Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
+
+            forceStop();
+            return;
+        }
+
+        if (getGameStatus() != GameStatus.INGAME){
+            Bukkit.getLogger().log(Level.WARNING, "Attempted to stop a game while it is not in-game!");
+            return;
+        }
+
+        displayLeaderboard();
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {}, 60L);
+
+        //TODO Send players to spawn lobby
+
+        //Remove all Sg Players from the game
+        SurvivalGames.GetPlayerManager().clearGamePlayers(this);
+
+        //Start to reset the map
+        setGameStatus(GameStatus.RESETTING);
+        MapEnvironment.ClearDroppedItems(this);
+
+        restart();
 
     }
 
     public void forceStop(){
+        playerWaitingThread.exit();
+        setGameStatus(GameStatus.STOPPED);
 
+        //TODO Send players to spawn lobby
+
+        SurvivalGames.GetPlayerManager().clearGamePlayers(this);
     }
 
-    public void restart(){
+    private void restart(){
+        if (getGameStatus() != GameStatus.RESETTING){
+            Bukkit.getLogger().log(Level.WARNING, "Attempted to reset a game while it is not in resetting state!");
+            return;
+        }
 
+        MapEnvironment.ClearDroppedItems(this);
+
+        start();
+    }
+
+    private void displayLeaderboard(){
+        broadcastMsg(ChatColor.BLUE + "----  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE  + "----");
+        SgPlayer[] players = getLeaderboard();
+        for (int i = 0; i < players.length; i++){
+            broadcastMsg(ChatColor.YELLOW + "" + (i+1) + ChatColor.BLUE + " - " + ChatColor.WHITE + players[i].getName());
+        }
     }
 
     /**
      * This will restock all the checks of the map
      */
-    private void restockChests(){
+    private void restockChests(boolean broadcast){
         MapEnvironment.RestockChests(this);
-        broadcastMsg("All chests have been restocked!"); //TODO Configurable
+        if (broadcast) broadcastMsg("All chests have been restocked!"); //TODO Configurable
 
     }
 
@@ -285,6 +355,13 @@ public class Game {
         }
     }
 
+    public SgPlayer[] getLeaderboard(){
+        List<SgPlayer> players = getPlayers();
+
+        players.sort(Comparator.comparingInt(SgPlayer::getKills).reversed());
+        return (SgPlayer[]) players.toArray();
+    }
+
     public void broadcastMsg(String message){
         for (SgPlayer sgPlayer : getPlayers()){
             sgPlayer.getBukkitPlayer().sendMessage(message);
@@ -317,21 +394,32 @@ public class Game {
     }
 
     private class PlayerWaiter implements Runnable {
+        private Thread thread;
         private int minPlayers;
+        private boolean exit = false;
 
         public PlayerWaiter(int minPlayers){
             this.minPlayers = minPlayers;
+            thread = new Thread(this, "PlayerWaiter - " + name);
+            thread.start();
         }
 
         @Override
         public void run() {
-            while (players.size() < minPlayers){
+            while (!exit &&(players.size() < minPlayers)){
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException ignored) {}
                 Thread.yield();
             }
         }
-    }
 
+        public void exit(){
+            exit = true;
+        }
+
+        public Thread getThread() {
+            return thread;
+        }
+    }
 }
