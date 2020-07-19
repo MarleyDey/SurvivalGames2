@@ -20,7 +20,8 @@ public class Game {
     private int[] dimensions;
     private Location lobbyLocation;
     private boolean playersCanMove = true;
-    private int maxPlayers, minPlayers,
+    private int maxPlayers,
+            minPlayers,
             waitingCountdown = 10,
             waitingCountdownTask = 0;
     private Location[] spawnLocations, chestLocations;
@@ -123,7 +124,6 @@ public class Game {
         return minPlayers;
     }
 
-    //TODO put this in player move listener
     public boolean isPlayersCanMove() {
         return playersCanMove;
     }
@@ -263,7 +263,7 @@ public class Game {
         displayLeaderboard();
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {}, 60L);
 
-        //TODO Send players to spawn lobby
+        sendPlayersToGameLobby();
 
         //Remove all Sg Players from the game
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
@@ -272,6 +272,7 @@ public class Game {
         setGameStatus(GameStatus.RESETTING);
         MapEnvironment.ClearDroppedItems(this);
 
+        //Reset and restart the game
         restart();
 
     }
@@ -280,7 +281,7 @@ public class Game {
         playerWaitingThread.exit();
         setGameStatus(GameStatus.STOPPED);
 
-        //TODO Send players to spawn lobby
+        sendPlayersToGameLobby();
 
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
     }
@@ -347,6 +348,24 @@ public class Game {
     }
 
     /**
+     * This will send all the players of the game back to game lobby
+     */
+    private void sendPlayersToGameLobby(){
+        for (SgPlayer sgPlayer : getPlayers()){
+            Location spawnLocation = SurvivalGames.getLobby().getSpawnLocation();
+
+            if (spawnLocation == null){
+                Bukkit.getLogger().log(Level.SEVERE, "The game lobby has no spawn point set! Stopping game..");
+
+                //Force stop the game to prevent spawn error
+                forceStop();
+                return;
+            }
+            sgPlayer.getBukkitPlayer().teleport(spawnLocation);
+        }
+    }
+
+    /**
      * This will send all the players of the game back to the lobby location
      */
     private void sendPlayersToLobby(){
@@ -379,7 +398,8 @@ public class Game {
 
         //Player joins while game is waiting for players
         if (getGameStatus() == GameStatus.WAITING){
-            //TODO Display nice join message
+            broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
+                    player.getName() + ChatColor.YELLOW + " has joined the game!");
         }
     }
 

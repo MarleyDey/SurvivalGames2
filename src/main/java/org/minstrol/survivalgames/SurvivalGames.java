@@ -5,7 +5,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.minstrol.survivalgames.commands.CommandManager;
 import org.minstrol.survivalgames.game.GameManager;
+import org.minstrol.survivalgames.listeners.PlayerDeathListener;
 import org.minstrol.survivalgames.listeners.PlayerMovingListener;
+import org.minstrol.survivalgames.lobby.Lobby;
 import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.util.ConfigManager;
 
@@ -15,8 +17,11 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     private static PlayerManager playerManager;
     private static GameManager gameManager;
 
+    private static Lobby lobby;
+
     private Listener[] listeners = new Listener[]{
-            new PlayerMovingListener()
+            new PlayerMovingListener(),
+            new PlayerDeathListener()
     };
 
     private CommandManager commandManager
@@ -33,6 +38,8 @@ public class SurvivalGames extends JavaPlugin implements Listener {
         configManager = new ConfigManager(this);
         playerManager = new PlayerManager();
         gameManager = new GameManager();
+
+        lobby = new Lobby();
 
         //Register game events
         registerEvents();
@@ -89,5 +96,14 @@ public class SurvivalGames extends JavaPlugin implements Listener {
      */
     public static ConfigManager GetConfigManager() {
         return configManager;
+    }
+
+    /**
+     * This gets the static instance of the lobby class
+     *
+     * @return The lobby class
+     */
+    public static Lobby getLobby() {
+        return lobby;
     }
 }

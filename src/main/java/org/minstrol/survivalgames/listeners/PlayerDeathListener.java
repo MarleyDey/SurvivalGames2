@@ -33,6 +33,5 @@ public class PlayerDeathListener implements Listener {
         if (alivePlayers.size() <= 1){
             game.stop();
         }
-
     }
 }

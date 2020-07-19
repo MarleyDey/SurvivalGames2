@@ -1,0 +1,6 @@
+lobby:
+  spawn: location-string
+  signs:
+    - location1
+    - location2
+    - location3
