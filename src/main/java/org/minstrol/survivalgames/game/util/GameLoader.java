@@ -7,6 +7,7 @@ import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.util.ConfigManager;
 
+import java.util.List;
 import java.util.logging.Level;
 
 public class GameLoader {
@@ -45,7 +46,7 @@ public class GameLoader {
             return null;
         }
 
-        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName, getMapDimensions());
+        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName, getMapDimensions(), getMinPlayers(), getMaxPlayers());
     }
 
     private Location[] getChestLocations(){
@@ -58,6 +59,14 @@ public class GameLoader {
 
     private Location getLobbyLocation(){
         return ConfigManager.GetLocation(gameConfig, configPath + "lobby-location");
+    }
+
+    private int getMaxPlayers(){
+        return gameConfig.getInt(configPath + ".options.max-players");
+    }
+
+    private int getMinPlayers(){
+        return gameConfig.getInt(configPath + ".options.min-players");
     }
 
     /**
@@ -78,5 +87,25 @@ public class GameLoader {
 
         return dimensions;
     }
+
+    public static Location[] GetSpawnLocations(String gameName){
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        FileConfiguration gameConfig = configManager.getGameConfig();
+
+        String spawnLocsPath = "games.maps." + gameName.toUpperCase() + ".spawns";
+
+        if (gameConfig.get(spawnLocsPath) == null)return null;
+
+        List<String> locationStrings = gameConfig.getStringList(spawnLocsPath);
+        if (locationStrings.size() == 0)return null;
+
+        return (Location[]) locationStrings.toArray();
+    }
+
+    public static Location[] GetChestLocations(){
+
+    }
+
+
 
 }

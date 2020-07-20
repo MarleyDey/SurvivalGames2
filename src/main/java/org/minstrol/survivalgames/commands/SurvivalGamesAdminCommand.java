@@ -1,13 +1,27 @@
 package org.minstrol.survivalgames.commands;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.util.ConfigManager;
+import org.minstrol.survivalgames.util.ParseConverter;
 
 public class SurvivalGamesAdminCommand extends SgCommand {
 
-    private boolean settingLobby
+    private boolean
+            settingGame = true,
+            settingLobby = false,
+            settingPlayerSpawns = false,
+            settingBoundsCorner1 = false,
+            settingBoundsCorner2 = false,
+            settingDetectionChests = false;
+
+    private String settingUpGameName = "";
 
     public String getCommand() {
         return "sgadmin";
@@ -37,17 +51,185 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
         //Setup sub-command
         if (args[0].equalsIgnoreCase("setup")){
+            if (sender instanceof ConsoleCommandSender){
+                sender.sendMessage(ChatColor.RED + "The setup sub-command is not supported by the console!");
+                return;
+            }
+
+            ConfigManager configManager = SurvivalGames.GetConfigManager();
+            FileConfiguration gamesConfig = configManager.getGameConfig();
+
+            if (settingGame){
+                if (args.length == 1){
+                    sender.sendMessage(ChatColor.RED + "To setup a game please use: " + ChatColor.LIGHT_PURPLE + "\n- /sgadmin setup [name] [min-players] [max-players]");
+                    return;
+                }
+
+                if (args.length < 4){
+                    sender.sendMessage(ChatColor.RED + "Invalid amount of arguments, please specify the games name, minimum players and maximum players!");
+                    return;
+                }
+
+                //Check name argument
+                if (SurvivalGames.GetGameManager().getGame(args[1]) != null){
+                    sender.sendMessage(ChatColor.RED + "This game already exists!");
+                    return;
+                }
+
+                //Check min-players argument
+                if (!validInteger(args[2])){
+                    sender.sendMessage(ChatColor.RED + args[2] + " is not a valid whole number!");
+                    return;
+                }
+
+                //Check max-players argument
+                if (!validInteger(args[3])){
+                    sender.sendMessage(ChatColor.RED + args[3] + " is not a valid whole number!");
+                    return;
+                }
+
+                int minPlayers = Integer.parseInt(args[2]);
+                int maxPlayers = Integer.parseInt(args[3]);
+
+                if (minPlayers > maxPlayers){
+                    sender.sendMessage(ChatColor.RED + "The minimum players required to start the game cannot be " +
+                            "larger than the maximum amount of players to start the game!");
+                    return;
+                }
+
+                String gamePath = "games.maps." + args[1].toUpperCase() + ".";
+                gamesConfig.set(gamePath + "options.max-players", maxPlayers);
+                gamesConfig.set(gamePath + "options.min-players", minPlayers);
+
+                configManager.saveGameConfig();
+
+                settingGame = false;
+                settingBoundsCorner1 = true;
+
+                settingUpGameName = args[1].toUpperCase();
+
+                sender.sendMessage(ChatColor.GREEN + "You have created the game " + settingUpGameName + "!\n" +
+                        ChatColor.AQUA + "Next you need to set the maps boundaries!\n" +
+                        ChatColor.GRAY + "To set the boundaries of the map you will need to set\n" +
+                                         "the location of the two furthest corners! To do this go\n " +
+                                         "to one edge of the map cube and\n" +
+                        ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to set corner 1's location");
+                return;
+            }
+
+            if (settingBoundsCorner1){
+                //Check name argument
+                if (checkGameExists(gamesConfig, settingUpGameName)){
+                    sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
+                    return;
+                }
+
+                Player player = (Player) sender;
+                Location location = player.getLocation();
+
+                String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
+                gamesConfig.set(gamePath + "dimensions.x1", location.getBlockX());
+                gamesConfig.set(gamePath + "dimensions.y1", location.getBlockY());
+                gamesConfig.set(gamePath + "dimensions.z1", location.getBlockZ());
+
+                configManager.saveGameConfig();
+
+                settingBoundsCorner1 = false;
+                settingBoundsCorner2 = true;
+
+                sender.sendMessage(ChatColor.GREEN + "You have set corner 1 location!\n" +
+                        ChatColor.AQUA + "Next you need to set corner 2 location!\n" +
+                        ChatColor.GRAY + "To set the boundaries of the map you will need to set\n" +
+                        "the location of the two furthest corners! To do this go\n " +
+                        "to the other edge of the map cube and\n" +
+                        ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to set corner 2's location");
+                return;
+            }
+
+            if (settingBoundsCorner2){
+                //Check name argument
+                if (checkGameExists(gamesConfig, settingUpGameName)){
+                    sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
+                    return;
+                }
+
+                Player player = (Player) sender;
+                Location location = player.getLocation();
+
+                String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
+                gamesConfig.set(gamePath + "dimensions.x2", location.getBlockX());
+                gamesConfig.set(gamePath + "dimensions.y2", location.getBlockY());
+                gamesConfig.set(gamePath + "dimensions.z2", location.getBlockZ());
+
+                configManager.saveGameConfig();
+
+                settingBoundsCorner2 = false;
+                settingLobby = true;
+
+                sender.sendMessage(ChatColor.GREEN + "You have created the map boundaries!\n" +
+                        ChatColor.AQUA + "Next you need to set the games waiting lobby spawn point!\n" +
+                        ChatColor.GRAY + "This is the waiting lobby where players wait for the game to\n" +
+                                         "start. To set this location\n" +
+                        ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to set the location");
+                return;
+            }
+
+            if (settingLobby){
+                //Check name argument
+                if (checkGameExists(gamesConfig, settingUpGameName)){
+                    sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
+                    return;
+                }
+
+                Player player = (Player) sender;
+                Location location = player.getLocation();
+
+                String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
+                gamesConfig.set(gamePath + "lobby-location", ParseConverter.LocationToString(location));
+                configManager.saveGameConfig();
+
+                settingLobby = false;
+                settingPlayerSpawns = true;
+
+                int maxPlayers = gamesConfig.getInt("games.maps." + settingUpGameName.toUpperCase() + "options.max-players");
+
+                sender.sendMessage(ChatColor.GREEN + "You have set the waiting lobby spawn!\n" +
+                        ChatColor.AQUA + "Next you need to set the players spawn points for the game!\n" +
+                        ChatColor.GRAY + "This is where players are sent at the beginning of the game,\n" +
+                                         "usually in a big circle.\n" +
+                        ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to set the spawn location (1/" + maxPlayers + ")");
+                return;
+            }
+
+            if (settingPlayerSpawns){
+                Location[] currentSpawnLocations = ConfigManager.GetLocations(gamesConfig, "games.maps." + settingUpGameName.toUpperCase()
+                        + ".spawns");
+
+                int spawnLocs = 0;
+                if (currentSpawnLocations != null) spawnLocs = currentSpawnLocations.length;
+
+                int maxPlayers = gamesConfig.getInt("games.maps." +
+                        settingUpGameName.toUpperCase() + "options.max-players");
+
+                //Is last spawn to set
+                if (spawnLocs >= (maxPlayers - 1)){
+
+                    settingPlayerSpawns = false;
+                    settingDetectionChests = true;
+
+                    sender.sendMessage(ChatColor.GREEN + "You have set the player spawn points!\n" +
+                            ChatColor.AQUA + "Next the game cube needs to be scanned for chests!\n" +
+                            ChatColor.GRAY + "All the blocks in the map will be scanned to check for\n" +
+                                             "chests in the arena, once scanned chests placed will\n" +
+                                             "not be stocked at games start. To you can rescan later\n" +
+                                             "with '/sgadmin setup [game] rescan'. To scan for chests\n" +
+                            ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to scan for chests in map arena");
+                    return;
+                }
+            }
 
         }
     }
-
-    private void setupGame(Player player, String name, int minPlayers, int maxPlayers){
-        player.sendMessage("You are setting up game: " + name);
-        player.sendMessage("1) Set up lobby spawn point - type '/sgadmin setup' to set lobby spawn location");
-
-    }
-
-
 
     private void sendHelpMessage(CommandSender sender){
         sender.sendMessage(ChatColor.BLUE +         "-----------" + ChatColor.YELLOW + " SG Admin Help " + ChatColor.BLUE + "----------");
@@ -66,5 +248,18 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin forcerestock [name]");
         sender.sendMessage(ChatColor.GRAY +         "    - Force restock all the chests in named game");
         sender.sendMessage(ChatColor.BLUE +         "-------------------------------------------");
+    }
+
+    private boolean validInteger(String arg){
+        try {
+            int d = Integer.parseInt(arg);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkGameExists(FileConfiguration gamesConfig, String name){
+        return gamesConfig.get("games.maps." + name.toUpperCase()) != null;
     }
 }
