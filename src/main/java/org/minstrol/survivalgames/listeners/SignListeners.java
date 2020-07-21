@@ -2,20 +2,23 @@ package org.minstrol.survivalgames.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.game.GameStatus;
-import org.minstrol.survivalgames.util.ConfigManager;
+import org.minstrol.survivalgames.lobby.SignManager;
 
+import java.util.List;
 import java.util.logging.Level;
 
 public class SignListeners implements Listener {
@@ -27,15 +30,24 @@ public class SignListeners implements Listener {
 
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction().equals(Action.LEFT_CLICK_AIR))return;
 
+        player.sendMessage("Clicked block");
+
         Block block = event.getClickedBlock();
-        if (block == null)return;
-        if (!block.getType().name().contains("SIGN"))return;
+        player.sendMessage("type: " + block.getType().name());
+
+        if (!(block.getState() instanceof Sign)) {
+            player.sendMessage("not sign");
+
+        }
+
+        player.sendMessage("Clicked sign");
 
         Sign sign = (Sign) block.getState();
-
         String[] signLines = sign.getLines();
 
         if (!signLines[0].equals(ChatColor.GOLD + "[SG]")) return;
+
+        player.sendMessage("has sg on top");
 
         //Check that the game exists
         Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
@@ -59,29 +71,42 @@ public class SignListeners implements Listener {
     }
 
     @EventHandler
-    public void on(BlockPlaceEvent event){
-        Block block = event.getBlock();
-
-        if (!block.getType().name().contains("SIGN"))return;
-
-        Sign sign = (Sign) block.getState();
-        String[] signLines = sign.getLines();
+    public void on(SignChangeEvent event){
+        String[] signLines = event.getLines();
 
         if (!signLines[0].equals("[SG]"))return;
+
+        event.getPlayer().sendMessage("has SG");
 
         //Check that the game exists
         Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
         if (game == null) {
-            sign.setLine(1, "Game not found!");
-            sign.update();
+            event.getBlock().getState().update();
             return;
         }
 
-        sign.setLine(0, ChatColor.GOLD + "[SG]");
-        sign.setLine(1, game.getName());
-        sign.update();
+        event.setLine(0, ChatColor.GOLD + "[SG]");
+        event.setLine(1, game.getName());
+        event.getBlock().getState().update();
 
-        SurvivalGames.GetSignManager().addSign(block.getLocation());
+        SurvivalGames.GetSignManager().addSign(event.getBlock().getLocation());
         event.getPlayer().sendMessage(ChatColor.GREEN + "You have set up a SG lobby sign!");
+    }
+
+    @EventHandler
+    public void on(BlockBreakEvent event){
+        Block block = event.getBlock();
+
+        //Check it is a sign
+        if (!block.getType().name().contains("SIGN"))return;
+
+        //Check the sign is a lobby sign
+        SignManager signManager = SurvivalGames.GetSignManager();
+        List<Location> signLocations = signManager.getSignLocations();
+
+        if (!signLocations.contains(block.getLocation()))return;
+
+        signManager.removeSign(block.getLocation());
+        event.getPlayer().sendMessage(ChatColor.YELLOW + "You have removed a lobby sign!");
     }
 }

@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -36,8 +35,8 @@ public class SignManager {
         updateSignsTask();
     }
 
-    private List<Location> getSignLocations() {
-        Location[] locationStrs = ConfigManager.GetLocations(lobbyConfig, "lobby.sign");
+    public List<Location> getSignLocations() {
+        Location[] locationStrs = ConfigManager.GetLocations(lobbyConfig, "lobby.signs");
 
         if (locationStrs == null) {
             Bukkit.getLogger().log(Level.WARNING, "No sign location were found in the lobby!");

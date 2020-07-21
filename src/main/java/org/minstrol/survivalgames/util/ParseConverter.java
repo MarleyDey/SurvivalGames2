@@ -42,9 +42,9 @@ public class ParseConverter {
         try {
             return new Location(
                     Bukkit.getWorld(locStrs[0]),
-                    Integer.getInteger(locStrs[1]),
-                    Integer.getInteger(locStrs[2]),
-                    Integer.getInteger(locStrs[3]),
+                    Double.valueOf(locStrs[1]),
+                    Double.valueOf(locStrs[2]),
+                    Double.valueOf(locStrs[3]),
                     Float.valueOf(locStrs[4]),
                     Float.valueOf(locStrs[5]));
         } catch (Exception ex){

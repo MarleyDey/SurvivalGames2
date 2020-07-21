@@ -26,7 +26,7 @@ public class Game {
             waitingCountdown = 10,
             waitingCountdownTask = 0;
     private Location[] spawnLocations, chestLocations;
-    private GameStatus gameStatus = GameStatus.STOPPED;
+    private GameStatus gameStatus = GameStatus.WAITING;
     private PlayerWaiter playerWaitingThread;
 
     private PlayerManager playerManager;
