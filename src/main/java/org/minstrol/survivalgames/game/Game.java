@@ -24,10 +24,10 @@ public class Game {
     private int maxPlayers,
             minPlayers,
             waitingCountdown = 10,
-            waitingCountdownTask = 0;
+            waitingCountdownTask = 0,
+            waitingTask = 0;
     private Location[] spawnLocations, chestLocations;
-    private GameStatus gameStatus = GameStatus.WAITING;
-    private PlayerWaiter playerWaitingThread;
+    private GameStatus gameStatus = GameStatus.STOPPED;
 
     private PlayerManager playerManager;
 
@@ -135,7 +135,7 @@ public class Game {
      * @return List of Sg players
      */
     public List<SgPlayer> getPlayers() {
-        List<SgPlayer> sgPlayers = new ArrayList<SgPlayer>();
+        List<SgPlayer> sgPlayers = new ArrayList<>();
         for (String playerUuid : players){
             sgPlayers.add(playerManager.getSgPlayer(playerUuid));
         }
@@ -159,10 +159,12 @@ public class Game {
 
 
     public void start(){
-        if (getGameStatus() != GameStatus.STOPPED || getGameStatus() != GameStatus.RESETTING){
+        if (getGameStatus() == GameStatus.WAITING || getGameStatus() == GameStatus.INGAME){
             Bukkit.getLogger().log(Level.WARNING, "Game is already running!");
             return;
         }
+
+        Bukkit.getLogger().log(Level.INFO, "Starting game " + name + "...");
 
         Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         if (plugin == null) {
@@ -181,22 +183,13 @@ public class Game {
         //Lobby waiting process
         while (!enoughPlayers) {
 
-            playerWaitingThread = new PlayerWaiter(minPlayers);
-
-            //Wait for enough players to join the game
-            try {
-                playerWaitingThread.getThread().join(); //I dont know if this will work
-            } catch (InterruptedException ex) {
-                Bukkit.getLogger().log(Level.SEVERE, "Waiting for players to join thread interrupted", ex);
-
-                forceStop();
-                return;
-            }
+            waitingTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+                if (players.size() >= minPlayers) Bukkit.getScheduler().cancelTask(waitingTask);
+            }, 0L, 10L);
 
             //Enough players have joined, start game countdown
             enoughPlayers = true;
 
-            restockChests(false);
             broadcastMsg("Attempting to start the game..."); //TODO Make configurable
 
 
@@ -217,6 +210,8 @@ public class Game {
 
         //Waiting process is over, we can start the game
         setGameStatus(GameStatus.STARTING);
+
+        restockChests(false);
 
         //Assign each player a spawn position
         assignPlayerSpawns();
@@ -246,7 +241,8 @@ public class Game {
     }
 
     public void stop(){
-        playerWaitingThread.exit();
+        Bukkit.getScheduler().cancelTask(waitingTask);
+        Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
         Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         if (plugin == null) {
@@ -268,6 +264,7 @@ public class Game {
 
         //Remove all Sg Players from the game
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
+        players.clear();
 
         //Start to reset the map
         setGameStatus(GameStatus.RESETTING);
@@ -279,12 +276,15 @@ public class Game {
     }
 
     public void forceStop(){
-        playerWaitingThread.exit();
+        Bukkit.getScheduler().cancelTask(waitingTask);
+        Bukkit.getScheduler().cancelTask(waitingCountdownTask);
+
         setGameStatus(GameStatus.STOPPED);
 
         sendPlayersToGameLobby();
 
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
+        players.clear();
     }
 
     private void restart(){
@@ -320,9 +320,6 @@ public class Game {
         for (SgPlayer sgPlayer : getPlayers()){
             if (spawnLocations.length <= i){
                 Bukkit.getLogger().log(Level.SEVERE, "There are more players than spawn points! Stopping game..");
-
-                //Force stop the game to prevent spawn error
-                forceStop();
                 return;
             }
 
@@ -357,9 +354,6 @@ public class Game {
 
             if (spawnLocation == null){
                 Bukkit.getLogger().log(Level.SEVERE, "The game lobby has no spawn point set! Stopping game..");
-
-                //Force stop the game to prevent spawn error
-                forceStop();
                 return;
             }
             sgPlayer.getBukkitPlayer().teleport(spawnLocation);
@@ -395,12 +389,18 @@ public class Game {
      * @return if the player joined successfully
      */
     public void playerJoin(Player player){
+        if (players.contains(player.getUniqueId().toString()))return;
+
+        players.add(player.getUniqueId().toString());
         playerManager.addPlayer(player, this);
 
         //Player joins while game is waiting for players
         if (getGameStatus() == GameStatus.WAITING){
             broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
                     player.getName() + ChatColor.YELLOW + " has joined the game!");
+
+            //Teleport player to waiting lobby
+            player.teleport(lobbyLocation);
         }
     }
 
@@ -412,35 +412,6 @@ public class Game {
      */
     public void playerLeave(Player player){
         playerManager.removePlayer(player);
-    }
-
-    private class PlayerWaiter implements Runnable {
-        private Thread thread;
-        private int minPlayers;
-        private boolean exit = false;
-
-        public PlayerWaiter(int minPlayers){
-            this.minPlayers = minPlayers;
-            thread = new Thread(this, "PlayerWaiter - " + name);
-            thread.start();
-        }
-
-        @Override
-        public void run() {
-            while (!exit &&(players.size() < minPlayers)){
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored) {}
-                Thread.yield();
-            }
-        }
-
-        public void exit(){
-            exit = true;
-        }
-
-        public Thread getThread() {
-            return thread;
-        }
+        players.remove(player.getUniqueId().toString());
     }
 }

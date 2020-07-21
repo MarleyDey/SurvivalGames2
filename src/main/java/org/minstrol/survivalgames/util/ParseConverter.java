@@ -45,16 +45,16 @@ public class ParseConverter {
                     Double.valueOf(locStrs[1]),
                     Double.valueOf(locStrs[2]),
                     Double.valueOf(locStrs[3]),
-                    Float.valueOf(locStrs[4]),
-                    Float.valueOf(locStrs[5]));
+                    Float.valueOf(locStrs[5]),
+                    Float.valueOf(locStrs[4]));
         } catch (Exception ex){
             Bukkit.getLogger().log(Level.SEVERE, "String could not be parsed into a location " +
                     "(world:" + locStrs[0] +
                     " x:" + locStrs[1] + "" +
                     " y:" + locStrs[2] + "" +
                     " z:" + locStrs[3] + "" +
-                    " pitch:" + locStrs[4] + "" +
-                    " yaw:" + locStrs[5], ex);
+                    " pitch:" + locStrs[5] + "" +
+                    " yaw:" + locStrs[4], ex);
             return null;
         }
     }

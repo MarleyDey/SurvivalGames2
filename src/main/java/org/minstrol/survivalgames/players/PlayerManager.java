@@ -123,7 +123,7 @@ public class PlayerManager {
         for (SgPlayer sgPlayer : players){
             if (sgPlayer == null)continue;
             if (sgPlayer.getBukkitPlayer() == null)continue;
-            if (sgPlayer.getBukkitPlayer().getUniqueId().toString().toLowerCase().equals(uuid.toUpperCase()))
+            if (sgPlayer.getBukkitPlayer().getUniqueId().toString().toLowerCase().equals(uuid.toLowerCase()))
                 return sgPlayer;
         }
         return null;

@@ -77,6 +77,9 @@ public class GameManager {
             Bukkit.getLogger().log(Level.SEVERE, "The game " + name + " could not be loaded!");
             return;
         }
+
+        game.start();
+
         Bukkit.getLogger().log(Level.INFO, "Game loaded: " + name + " was successful");
 
         games.add(game);
@@ -151,7 +154,9 @@ public class GameManager {
             }
 
             games.add(game);
-            Bukkit.getLogger().log(Level.FINE, "Game " + name + " has been found and loaded!");
+            Bukkit.getLogger().log(Level.INFO, "Game " + name + " has been found and loaded!");
+
+            game.start();
         }
     }
 
