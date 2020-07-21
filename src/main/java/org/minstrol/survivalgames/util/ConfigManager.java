@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -198,6 +199,38 @@ public class ConfigManager {
         }
 
         return locations;
+    }
+
+    public static void AddLocationToLocationList(FileConfiguration config, String path, Location location){
+        List<String> locationStrs;
+
+        if (config.get(path) != null) {
+            locationStrs
+                    = config.getStringList(path);
+        } else{
+            locationStrs = new ArrayList<>();
+        }
+
+        locationStrs.add(ParseConverter.LocationToString(location));
+        config.set(path, locationStrs);
+
+    }
+
+    public static void SetLocations(FileConfiguration config, String path, Location[] locations){
+        List<String> locationStrs;
+
+        if (config.get(path) != null) {
+            locationStrs
+                    = config.getStringList(path);
+        } else{
+            locationStrs = new ArrayList<>();
+        }
+
+        for (Location location : locations){
+            locationStrs.add(ParseConverter.LocationToString(location));
+        }
+
+        config.set(path, locationStrs);
     }
 
     /**

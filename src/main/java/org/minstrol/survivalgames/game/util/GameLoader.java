@@ -1,12 +1,15 @@
 package org.minstrol.survivalgames.game.util;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.util.ConfigManager;
+import org.minstrol.survivalgames.util.ParseConverter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -46,7 +49,7 @@ public class GameLoader {
             return null;
         }
 
-        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName, getMapDimensions(), getMinPlayers(), getMaxPlayers());
+        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName, getMapDimensions(gameConfig, configPath), getMinPlayers(), getMaxPlayers());
     }
 
     private Location[] getChestLocations(){
@@ -75,37 +78,61 @@ public class GameLoader {
      *
      * @return array of cords of the game map
      */
-    private int[] getMapDimensions(){
+    public static int[] getMapDimensions(FileConfiguration config, String gamePath){
         int[] dimensions = new int[6];
 
-        dimensions[0] = gameConfig.getInt(configPath + "dimensions.x1");
-        dimensions[1] = gameConfig.getInt(configPath + "dimensions.x2");
-        dimensions[2] = gameConfig.getInt(configPath + "dimensions.y1");
-        dimensions[3] = gameConfig.getInt(configPath + "dimensions.y2");
-        dimensions[4] = gameConfig.getInt(configPath + "dimensions.z1");
-        dimensions[5] = gameConfig.getInt(configPath + "dimensions.z2");
+        dimensions[0] = config.getInt(gamePath + "dimensions.x1");
+        dimensions[1] = config.getInt(gamePath + "dimensions.x2");
+        dimensions[2] = config.getInt(gamePath + "dimensions.y1");
+        dimensions[3] = config.getInt(gamePath + "dimensions.y2");
+        dimensions[4] = config.getInt(gamePath + "dimensions.z1");
+        dimensions[5] = config.getInt(gamePath + "dimensions.z2");
 
         return dimensions;
     }
 
-    public static Location[] GetSpawnLocations(String gameName){
-        ConfigManager configManager = SurvivalGames.GetConfigManager();
-        FileConfiguration gameConfig = configManager.getGameConfig();
+    public static Location[] DetectChests(CommandSender sender, World world, int[] dimensions){
+        List<Location> chestLocations = new ArrayList<>();
 
-        String spawnLocsPath = "games.maps." + gameName.toUpperCase() + ".spawns";
+        int lx, ux, ly, uy, lz, uz;
 
-        if (gameConfig.get(spawnLocsPath) == null)return null;
+        //Upper and lower of x dimension
+        lx = Math.min(dimensions[0], dimensions[1]);
+        ux = Math.max(dimensions[0], dimensions[1]);
 
-        List<String> locationStrings = gameConfig.getStringList(spawnLocsPath);
-        if (locationStrings.size() == 0)return null;
+        //Upper and lower of y dimension
+        ly = Math.min(dimensions[2], dimensions[3]);
+        uy = Math.max(dimensions[2], dimensions[3]);
 
-        return (Location[]) locationStrings.toArray();
+        //Upper and lower of z dimension
+        lz = Math.min(dimensions[4], dimensions[5]);
+        uz = Math.max(dimensions[4], dimensions[5]);
+
+        int chestAmount = 1;
+
+        //X dimension
+        for (int x = lx; x < ux; x++){
+
+            //Y dimension
+            for (int y = ly; y < uy; y++){
+
+                //Z dimension
+                for (int z = lz; z < uz; z++){
+
+                    //Check for chest
+                    Location location = new Location(world, x, y, z);
+                    Block block = world.getBlockAt(location);
+                    if (!block.getType().equals(Material.CHEST))continue;
+
+                    String locationString = ParseConverter.LocationToString(location);
+                    chestLocations.add(location);
+
+                    sender.sendMessage(ChatColor.GREEN + "[" + chestAmount + "] Chest Found! [" + locationString + "]");
+                    chestAmount++;
+                }
+            }
+        }
+
+        return  ParseConverter.LocationListToArray(chestLocations);
     }
-
-    public static Location[] GetChestLocations(){
-
-    }
-
-
-
 }

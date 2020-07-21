@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.util.GameLoader;
+import org.minstrol.survivalgames.util.ParseConverter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ public class GameManager {
     private List<Game> games;
 
     public GameManager(){
-        games = new ArrayList<Game>();
+        games = new ArrayList<>();
 
         //Load the games that are already present in the games config
         loadExistingGames();
@@ -122,7 +123,7 @@ public class GameManager {
                 = SurvivalGames.GetConfigManager().getGameConfig();
 
         Set<String> gameNames = gameConfig.getConfigurationSection("games.maps").getKeys(false);
-        return (String[]) gameNames.toArray();
+        return ParseConverter.StringListToArray(new ArrayList<>(gameNames));
     }
 
 

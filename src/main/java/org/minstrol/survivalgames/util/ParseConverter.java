@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 
 public class ParseConverter {
@@ -86,5 +87,36 @@ public class ParseConverter {
             Bukkit.getLogger().log(Level.SEVERE, "String could not be parsed to date format", ex);
         }
         return null;
+    }
+
+    public static String[] StringListToArray(List<String> strings){
+        String[] r = new String[strings.size()];
+
+        for (int i = 0; i < strings.size(); i++){
+            r[i] = strings.get(i);
+        }
+
+        return r;
+    }
+
+    public static <T> T[] ListToArray(List<T> list){
+        T[] r =  new T[list.size()];
+
+        for (int i = 0; i < strings.size(); i++){
+            r[i] = strings.get(i);
+        }
+
+        return r;
+    }
+
+
+    public static Location[] LocationListToArray(List<Location> locations){
+        Location[] r = new Location[locations.size()];
+
+        for (int i = 0; i < locations.size(); i++){
+            r[i] = locations.get(i);
+        }
+
+        return r;
     }
 }

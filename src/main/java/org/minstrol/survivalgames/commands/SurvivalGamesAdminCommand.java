@@ -8,6 +8,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.game.util.GameLoader;
 import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
 
@@ -51,6 +52,9 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
         //Setup sub-command
         if (args[0].equalsIgnoreCase("setup")){
+
+            String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
+
             if (sender instanceof ConsoleCommandSender){
                 sender.sendMessage(ChatColor.RED + "The setup sub-command is not supported by the console!");
                 return;
@@ -97,7 +101,8 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                     return;
                 }
 
-                String gamePath = "games.maps." + args[1].toUpperCase() + ".";
+                settingUpGameName = args[1].toUpperCase();
+
                 gamesConfig.set(gamePath + "options.max-players", maxPlayers);
                 gamesConfig.set(gamePath + "options.min-players", minPlayers);
 
@@ -105,8 +110,6 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
                 settingGame = false;
                 settingBoundsCorner1 = true;
-
-                settingUpGameName = args[1].toUpperCase();
 
                 sender.sendMessage(ChatColor.GREEN + "You have created the game " + settingUpGameName + "!\n" +
                         ChatColor.AQUA + "Next you need to set the maps boundaries!\n" +
@@ -117,6 +120,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 return;
             }
 
+            //Setting the 1st corner of map
             if (settingBoundsCorner1){
                 //Check name argument
                 if (checkGameExists(gamesConfig, settingUpGameName)){
@@ -127,7 +131,6 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 Player player = (Player) sender;
                 Location location = player.getLocation();
 
-                String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
                 gamesConfig.set(gamePath + "dimensions.x1", location.getBlockX());
                 gamesConfig.set(gamePath + "dimensions.y1", location.getBlockY());
                 gamesConfig.set(gamePath + "dimensions.z1", location.getBlockZ());
@@ -146,6 +149,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 return;
             }
 
+            //Setting the 2nd corner of map
             if (settingBoundsCorner2){
                 //Check name argument
                 if (checkGameExists(gamesConfig, settingUpGameName)){
@@ -156,7 +160,6 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 Player player = (Player) sender;
                 Location location = player.getLocation();
 
-                String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
                 gamesConfig.set(gamePath + "dimensions.x2", location.getBlockX());
                 gamesConfig.set(gamePath + "dimensions.y2", location.getBlockY());
                 gamesConfig.set(gamePath + "dimensions.z2", location.getBlockZ());
@@ -174,6 +177,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 return;
             }
 
+            //Set the waiting lobby location
             if (settingLobby){
                 //Check name argument
                 if (checkGameExists(gamesConfig, settingUpGameName)){
@@ -184,14 +188,13 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 Player player = (Player) sender;
                 Location location = player.getLocation();
 
-                String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
                 gamesConfig.set(gamePath + "lobby-location", ParseConverter.LocationToString(location));
                 configManager.saveGameConfig();
 
                 settingLobby = false;
                 settingPlayerSpawns = true;
 
-                int maxPlayers = gamesConfig.getInt("games.maps." + settingUpGameName.toUpperCase() + "options.max-players");
+                int maxPlayers = gamesConfig.getInt(gamePath + "options.max-players");
 
                 sender.sendMessage(ChatColor.GREEN + "You have set the waiting lobby spawn!\n" +
                         ChatColor.AQUA + "Next you need to set the players spawn points for the game!\n" +
@@ -201,15 +204,24 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 return;
             }
 
+            //Set the players spawn points
             if (settingPlayerSpawns){
-                Location[] currentSpawnLocations = ConfigManager.GetLocations(gamesConfig, "games.maps." + settingUpGameName.toUpperCase()
-                        + ".spawns");
+
+                Location[] currentSpawnLocations = null;
+                if (gamesConfig.get(gamePath + ".spawns") != null) {
+                    currentSpawnLocations = ConfigManager.GetLocations(gamesConfig, gamePath + ".spawns");
+                }
+
+                Player player = (Player) sender;
+                Location location = player.getLocation();
 
                 int spawnLocs = 0;
                 if (currentSpawnLocations != null) spawnLocs = currentSpawnLocations.length;
 
-                int maxPlayers = gamesConfig.getInt("games.maps." +
-                        settingUpGameName.toUpperCase() + "options.max-players");
+                int maxPlayers = gamesConfig.getInt(gamePath +  "options.max-players");
+
+                ConfigManager.AddLocationToLocationList(gamesConfig, gamePath + ".spawns", location);
+                configManager.saveGameConfig();
 
                 //Is last spawn to set
                 if (spawnLocs >= (maxPlayers - 1)){
@@ -226,8 +238,44 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                             ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to scan for chests in map arena");
                     return;
                 }
+
+                sender.sendMessage(ChatColor.GREEN + "You have set a player spawn point!\n" +
+                        ChatColor.AQUA + "Next you need to set another player spawn point!\n" +
+                        ChatColor.GRAY + "This is where players are sent at the beginning of the game,\n" +
+                        "usually in a big circle.\n" +
+                        ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin setup' to set the spawn location (" + spawnLocs + "/" + maxPlayers + ")");
+                return;
+
             }
 
+            //Detect for chests in game map arena
+            if (settingDetectionChests){
+                sender.sendMessage(ChatColor.YELLOW + "Detecting chests in map area...");
+
+                Location lobbyLocation = ConfigManager.GetLocation(gamesConfig, gamePath + ".lobby-location");
+                Location[] chestLocations = GameLoader.DetectChests(sender, lobbyLocation.getWorld(), GameLoader.getMapDimensions(gamesConfig, gamePath));
+
+                ConfigManager.SetLocations(gamesConfig, gamePath + ".chests", chestLocations);
+                configManager.saveGameConfig();
+
+                settingDetectionChests = false;
+                settingGame = true;
+
+                sender.sendMessage(ChatColor.GREEN + "Chest detection complete!\n" +
+                        ChatColor.AQUA + "The game should now be set up!\n" +
+                        ChatColor.GRAY + "You can now set up SG signs to join this game, if you would\n" +
+                                         "like to change any other settings you must delete the game\n" +
+                                         "and set it up again, to remove the game\n" +
+                        ChatColor.LIGHT_PURPLE + "  Type: '/sgadmin remove " + settingUpGameName +"' to remove the game");
+
+
+                sender.sendMessage(" \n" +
+                        ChatColor.YELLOW + "Attempting to load the game!");
+                //Attempt to load the game
+                SurvivalGames.GetGameManager().addGame(settingUpGameName);
+
+                settingUpGameName = "";
+            }
         }
     }
 

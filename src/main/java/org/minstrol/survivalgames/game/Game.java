@@ -44,7 +44,7 @@ public class Game {
         this.minPlayers = minPlayers;
 
         //Initialise starting values of game instance
-        this.players = new ArrayList<String>();
+        this.players = new ArrayList<>();
     }
 
     /**
