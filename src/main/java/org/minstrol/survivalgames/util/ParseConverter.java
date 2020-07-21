@@ -2,6 +2,7 @@ package org.minstrol.survivalgames.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.minstrol.survivalgames.players.SgPlayer;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -99,22 +100,21 @@ public class ParseConverter {
         return r;
     }
 
-    public static <T> T[] ListToArray(List<T> list){
-        T[] r =  new T[list.size()];
-
-        for (int i = 0; i < strings.size(); i++){
-            r[i] = strings.get(i);
-        }
-
-        return r;
-    }
-
-
     public static Location[] LocationListToArray(List<Location> locations){
         Location[] r = new Location[locations.size()];
 
         for (int i = 0; i < locations.size(); i++){
             r[i] = locations.get(i);
+        }
+
+        return r;
+    }
+
+    public static SgPlayer[] SgPlayerListToArray(List<SgPlayer> players){
+        SgPlayer[] r = new SgPlayer[players.size()];
+
+        for (int i = 0; i < players.size(); i++){
+            r[i] = players.get(i);
         }
 
         return r;

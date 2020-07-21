@@ -1,6 +1,7 @@
-lobby:
-  spawn: location-string
-  signs:
-    - location1
-    - location2
-    - location3
+example:
+  lobby:
+    spawn: location-string
+    signs:
+      - location1
+      - location2
+      - location3

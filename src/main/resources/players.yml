@@ -1,7 +1,8 @@
-players:
-  uuid:
-    player1-uuid:
-      kills: 0
-      deaths: 0
-      active-game: game-name
-      spawn-location: location-string
+example:
+  players:
+    uuid:
+      player1-uuid:
+        kills: 0
+        deaths: 0
+        active-game: game-name
+        spawn-location: location-string

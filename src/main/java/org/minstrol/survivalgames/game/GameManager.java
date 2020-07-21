@@ -122,6 +122,11 @@ public class GameManager {
         FileConfiguration gameConfig
                 = SurvivalGames.GetConfigManager().getGameConfig();
 
+        if (gameConfig.get("games.maps") == null){
+            Bukkit.getLogger().log(Level.WARNING, "No games were found in the game config to load!");
+            return null;
+        }
+
         Set<String> gameNames = gameConfig.getConfigurationSection("games.maps").getKeys(false);
         return ParseConverter.StringListToArray(new ArrayList<>(gameNames));
     }
@@ -131,7 +136,10 @@ public class GameManager {
      * This will load the games in the games config file
      */
     private void loadExistingGames(){
-        for (String name : getGameNames()){
+        String[] gameNames = getGameNames();
+
+        if (gameNames == null)return;
+        for (String name : gameNames){
 
             GameLoader gameLoader = new GameLoader(name);
             Game game = gameLoader.loadGame();

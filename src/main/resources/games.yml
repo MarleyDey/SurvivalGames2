@@ -1,28 +1,29 @@
-games:
-  maps:
-    name-of-map:
-      options:
-        max-players: 2
-        min-players: 1
+example:
+  games:
+    maps:
+      name-of-map:
+        options:
+          max-players: 2
+          min-players: 1
 
-      chests:
-        - location-string
-        - location-string
-        - location-string
+        chests:
+          - location-string
+          - location-string
+          - location-string
 
-      spawns:
-        - location-string
-        - location-string
-        - location-string
+        spawns:
+          - location-string
+          - location-string
+          - location-string
 
-      lobby-location: location-string
-      last-start-time: time-string
-      last-finish-time: time-string
+        lobby-location: location-string
+        last-start-time: time-string
+        last-finish-time: time-string
 
-      dimensions:
-        x1: 1
-        x2: 1
-        y1: 1
-        y2: 1
-        z1: 1
-        z2: 1
+        dimensions:
+          x1: 1
+          x2: 1
+          y1: 1
+          y2: 1
+          z1: 1
+          z2: 1

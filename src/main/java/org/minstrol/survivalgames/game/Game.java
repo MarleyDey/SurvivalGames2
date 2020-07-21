@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
+import org.minstrol.survivalgames.util.ParseConverter;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -378,7 +379,7 @@ public class Game {
         List<SgPlayer> players = getPlayers();
 
         players.sort(Comparator.comparingInt(SgPlayer::getKills).reversed());
-        return (SgPlayer[]) players.toArray();
+        return ParseConverter.SgPlayerListToArray(players);
     }
 
     public void broadcastMsg(String message){

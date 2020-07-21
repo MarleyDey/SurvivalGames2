@@ -53,12 +53,12 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         //Setup sub-command
         if (args[0].equalsIgnoreCase("setup")){
 
-            String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
-
             if (sender instanceof ConsoleCommandSender){
                 sender.sendMessage(ChatColor.RED + "The setup sub-command is not supported by the console!");
                 return;
             }
+
+            String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
 
             ConfigManager configManager = SurvivalGames.GetConfigManager();
             FileConfiguration gamesConfig = configManager.getGameConfig();
@@ -103,6 +103,8 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
                 settingUpGameName = args[1].toUpperCase();
 
+                gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
+
                 gamesConfig.set(gamePath + "options.max-players", maxPlayers);
                 gamesConfig.set(gamePath + "options.min-players", minPlayers);
 
@@ -123,7 +125,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
             //Setting the 1st corner of map
             if (settingBoundsCorner1){
                 //Check name argument
-                if (checkGameExists(gamesConfig, settingUpGameName)){
+                if (!checkGameExists(gamesConfig, settingUpGameName)){
                     sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
                     return;
                 }
@@ -152,7 +154,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
             //Setting the 2nd corner of map
             if (settingBoundsCorner2){
                 //Check name argument
-                if (checkGameExists(gamesConfig, settingUpGameName)){
+                if (!checkGameExists(gamesConfig, settingUpGameName)){
                     sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
                     return;
                 }
@@ -180,7 +182,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
             //Set the waiting lobby location
             if (settingLobby){
                 //Check name argument
-                if (checkGameExists(gamesConfig, settingUpGameName)){
+                if (!checkGameExists(gamesConfig, settingUpGameName)){
                     sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
                     return;
                 }
@@ -206,6 +208,12 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
             //Set the players spawn points
             if (settingPlayerSpawns){
+
+                //Check name argument
+                if (!checkGameExists(gamesConfig, settingUpGameName)){
+                    sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
+                    return;
+                }
 
                 Location[] currentSpawnLocations = null;
                 if (gamesConfig.get(gamePath + ".spawns") != null) {
@@ -250,6 +258,13 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
             //Detect for chests in game map arena
             if (settingDetectionChests){
+
+                //Check name argument
+                if (!checkGameExists(gamesConfig, settingUpGameName)){
+                    sender.sendMessage(ChatColor.RED + "The game " + settingUpGameName + " does not exist!");
+                    return;
+                }
+
                 sender.sendMessage(ChatColor.YELLOW + "Detecting chests in map area...");
 
                 Location lobbyLocation = ConfigManager.GetLocation(gamesConfig, gamePath + ".lobby-location");
