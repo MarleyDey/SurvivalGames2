@@ -30,24 +30,13 @@ public class SignListeners implements Listener {
 
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction().equals(Action.LEFT_CLICK_AIR))return;
 
-        player.sendMessage("Clicked block");
-
         Block block = event.getClickedBlock();
-        player.sendMessage("type: " + block.getType().name());
-
-        if (!(block.getState() instanceof Sign)) {
-            player.sendMessage("not sign");
-
-        }
-
-        player.sendMessage("Clicked sign");
+        if (!(block.getState() instanceof Sign)) return;
 
         Sign sign = (Sign) block.getState();
         String[] signLines = sign.getLines();
 
         if (!signLines[0].equals(ChatColor.GOLD + "[SG]")) return;
-
-        player.sendMessage("has sg on top");
 
         //Check that the game exists
         Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
@@ -76,11 +65,11 @@ public class SignListeners implements Listener {
 
         if (!signLines[0].equals("[SG]"))return;
 
-        event.getPlayer().sendMessage("has SG");
 
         //Check that the game exists
         Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
         if (game == null) {
+            event.setLine(1, "Game not found!");
             event.getBlock().getState().update();
             return;
         }
@@ -89,7 +78,9 @@ public class SignListeners implements Listener {
         event.setLine(1, game.getName());
         event.getBlock().getState().update();
 
-        SurvivalGames.GetSignManager().addSign(event.getBlock().getLocation());
+        SignManager signManager = SurvivalGames.GetSignManager();
+        signManager.addSign(event.getBlock().getLocation());
+
         event.getPlayer().sendMessage(ChatColor.GREEN + "You have set up a SG lobby sign!");
     }
 
@@ -98,12 +89,13 @@ public class SignListeners implements Listener {
         Block block = event.getBlock();
 
         //Check it is a sign
-        if (!block.getType().name().contains("SIGN"))return;
+        if (!(block.getState() instanceof Sign)) return;
 
         //Check the sign is a lobby sign
         SignManager signManager = SurvivalGames.GetSignManager();
         List<Location> signLocations = signManager.getSignLocations();
 
+        if (signLocations == null)return;
         if (!signLocations.contains(block.getLocation()))return;
 
         signManager.removeSign(block.getLocation());

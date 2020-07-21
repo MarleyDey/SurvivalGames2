@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -23,6 +24,7 @@ public class SignManager {
     private ConfigManager configManager;
     private FileConfiguration lobbyConfig;
     private int signUpdatingTask = 0;
+    private boolean isUpdatingTaskActive = false;
 
     public SignManager(Plugin plugin) {
         this.plugin = plugin;
@@ -47,18 +49,25 @@ public class SignManager {
     }
 
     private void updateSignsTask() {
+        isUpdatingTaskActive = true;
         signUpdatingTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             List<Location> signLocations = getSignLocations();
 
             if (signLocations == null) {
-                Bukkit.getLogger().log(Level.WARNING, "No lobby signs could be found!");
-                Bukkit.getScheduler().cancelTask(signUpdatingTask);
+                stopUpdatingSigns();
                 return;
             }
 
             for (Location signLoc : signLocations) {
                 World world = signLoc.getWorld();
-                Sign sign = (Sign) world.getBlockAt(signLoc).getState();
+
+                Block block = world.getBlockAt(signLoc);
+                if (!(block.getState() instanceof Sign)) {
+                    SurvivalGames.GetSignManager().removeSign(signLoc);
+                    continue;
+                }
+
+                Sign sign = (Sign) block.getState();
 
                 String[] signLines = sign.getLines();
 
@@ -86,6 +95,7 @@ public class SignManager {
 
     public void stopUpdatingSigns() {
         Bukkit.getScheduler().cancelTask(signUpdatingTask);
+        isUpdatingTaskActive = false;
     }
 
     public void addSign(Location location) {
@@ -102,6 +112,8 @@ public class SignManager {
         signLocs.add(ParseConverter.LocationToString(location));
         lobbyConfig.set("lobby.signs", signLocs);
         configManager.saveLobbyConfig();
+
+        if (!isUpdatingTaskActive) updateSignsTask();
     }
 
     public void removeSign(Location location) {
@@ -114,5 +126,12 @@ public class SignManager {
 
         lobbyConfig.set("lobby.signs", signLocs);
         configManager.saveLobbyConfig();
+
+        //Check if any lobby signs remain to save processing power
+        if (getSignLocations() == null)stopUpdatingSigns();
+    }
+
+    public boolean isUpdatingTaskActive() {
+        return isUpdatingTaskActive;
     }
 }

@@ -142,7 +142,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 settingBoundsCorner1 = false;
                 settingBoundsCorner2 = true;
 
-                sender.sendMessage(ChatColor.GREEN + "\nYou have set corner 1 location!\n" +
+                sender.sendMessage(ChatColor.GREEN + " \nYou have set corner 1 location!\n" +
                         ChatColor.AQUA + "Next you need to set corner 2 location!\n" +
                         ChatColor.GRAY + "To set the boundaries of the map you will need to set\n" +
                         "the location of the two furthest corners! To do this go\n " +
@@ -171,7 +171,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 settingBoundsCorner2 = false;
                 settingLobby = true;
 
-                sender.sendMessage(ChatColor.GREEN + "\nYou have created the map boundaries!\n" +
+                sender.sendMessage(ChatColor.GREEN + " \nYou have created the map boundaries!\n" +
                         ChatColor.AQUA + "Next you need to set the games waiting lobby spawn point!\n" +
                         ChatColor.GRAY + "This is the waiting lobby where players wait for the game to\n" +
                                          "start. To set this location\n" +
@@ -198,7 +198,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
                 int maxPlayers = gamesConfig.getInt(gamePath + "options.max-players");
 
-                sender.sendMessage(ChatColor.GREEN + "\nYou have set the waiting lobby spawn!\n" +
+                sender.sendMessage(ChatColor.GREEN + " \nYou have set the waiting lobby spawn!\n" +
                         ChatColor.AQUA + "Next you need to set the players spawn points for the game!\n" +
                         ChatColor.GRAY + "This is where players are sent at the beginning of the game,\n" +
                                          "usually in a big circle.\n" +
@@ -237,7 +237,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                     settingPlayerSpawns = false;
                     settingDetectionChests = true;
 
-                    sender.sendMessage(ChatColor.GREEN + "\nYou have set the player spawn points!\n" +
+                    sender.sendMessage(ChatColor.GREEN + " \nYou have set the player spawn points!\n" +
                             ChatColor.AQUA + "Next the game cube needs to be scanned for chests!\n" +
                             ChatColor.GRAY + "All the blocks in the map will be scanned to check for\n" +
                                              "chests in the arena, once scanned, chests placed will\n" +
@@ -247,7 +247,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                     return;
                 }
 
-                sender.sendMessage(ChatColor.GREEN + "\nYou have set a player spawn point!\n" +
+                sender.sendMessage(ChatColor.GREEN + " \nYou have set a player spawn point!\n" +
                         ChatColor.AQUA + "Next you need to set another player spawn point!\n" +
                         ChatColor.GRAY + "This is where players are sent at the beginning of the game,\n" +
                         "usually in a big circle.\n" +
@@ -276,7 +276,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 settingDetectionChests = false;
                 settingGame = true;
 
-                sender.sendMessage(ChatColor.GREEN + "Chest detection complete!\n" +
+                sender.sendMessage(ChatColor.GREEN + " \nChest detection complete!\n" +
                         ChatColor.AQUA + "The game should now be set up!\n" +
                         ChatColor.GRAY + "You can now set up SG signs to join this game, if you would\n" +
                                          "like to change any other settings you must delete the game\n" +
