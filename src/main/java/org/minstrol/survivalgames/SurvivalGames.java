@@ -5,10 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.minstrol.survivalgames.commands.CommandManager;
 import org.minstrol.survivalgames.game.GameManager;
-import org.minstrol.survivalgames.listeners.PlayerDeathListener;
-import org.minstrol.survivalgames.listeners.PlayerMovingListener;
-import org.minstrol.survivalgames.listeners.PlayerQuitListener;
-import org.minstrol.survivalgames.listeners.SignListeners;
+import org.minstrol.survivalgames.listeners.*;
 import org.minstrol.survivalgames.lobby.Lobby;
 import org.minstrol.survivalgames.lobby.SignManager;
 import org.minstrol.survivalgames.players.PlayerManager;
@@ -27,7 +24,8 @@ public class SurvivalGames extends JavaPlugin implements Listener {
             new PlayerMovingListener(),
             new PlayerDeathListener(),
             new SignListeners(),
-            new PlayerQuitListener()
+            new PlayerQuitListener(),
+            new PlayerDamageListener()
     };
 
     private CommandManager commandManager
@@ -38,53 +36,12 @@ public class SurvivalGames extends JavaPlugin implements Listener {
             "sg"
     };
 
-    @Override
-    public void onEnable() {
-        //Initialise Managers
-        configManager = new ConfigManager(this);
-        signManager = new SignManager(this);
-        playerManager = new PlayerManager();
-        gameManager = new GameManager();
-
-        lobby = new Lobby();
-
-        //Register game events
-        registerEvents();
-
-        //Register game command
-        registerCommands();
-    }
-
-    @Override
-    public void onDisable() {
-        GetGameManager().closeGames();
-        GetSignManager().stopUpdatingSigns();
-    }
-
-    /**
-     * Register the events of the game
-     */
-    private void registerEvents(){
-        for (Listener listener : listeners){
-            Bukkit.getPluginManager().registerEvents(listener, this);
-        }
-    }
-
-    /**
-     * Register the commands of the game to the command manager
-     */
-    private void registerCommands(){
-        for (String name : commandNames){
-            Bukkit.getPluginCommand(name).setExecutor(commandManager);
-        }
-    }
-
     /**
      * Gets the static instance of the player manager
      *
      * @return player manager
      */
-    public static PlayerManager GetPlayerManager(){
+    public static PlayerManager GetPlayerManager() {
         return playerManager;
     }
 
@@ -117,5 +74,46 @@ public class SurvivalGames extends JavaPlugin implements Listener {
 
     public static SignManager GetSignManager() {
         return signManager;
+    }
+
+    @Override
+    public void onEnable() {
+        //Initialise Managers
+        configManager = new ConfigManager(this);
+        signManager = new SignManager(this);
+        playerManager = new PlayerManager();
+        gameManager = new GameManager();
+
+        lobby = new Lobby();
+
+        //Register game events
+        this.registerEvents();
+
+        //Register game command
+        this.registerCommands();
+    }
+
+    @Override
+    public void onDisable() {
+        GetGameManager().closeGames();
+        GetSignManager().stopUpdatingSigns();
+    }
+
+    /**
+     * Register the events of the game
+     */
+    private void registerEvents() {
+        for (Listener listener : listeners) {
+            Bukkit.getPluginManager().registerEvents(listener, this);
+        }
+    }
+
+    /**
+     * Register the commands of the game to the command manager
+     */
+    private void registerCommands() {
+        for (String name : commandNames) {
+            Bukkit.getPluginCommand(name).setExecutor(commandManager);
+        }
     }
 }

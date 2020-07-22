@@ -34,7 +34,7 @@ public class SignManager {
 
 
         //Start updating the lobby signs every half-second
-        updateSignsTask();
+        this.updateSignsTask();
     }
 
     public List<Location> getSignLocations() {
@@ -51,10 +51,10 @@ public class SignManager {
     private void updateSignsTask() {
         isUpdatingTaskActive = true;
         signUpdatingTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            List<Location> signLocations = getSignLocations();
+            List<Location> signLocations = this.getSignLocations();
 
             if (signLocations == null) {
-                stopUpdatingSigns();
+                this.stopUpdatingSigns();
                 return;
             }
 
@@ -72,7 +72,7 @@ public class SignManager {
                 String[] signLines = sign.getLines();
 
                 if (!signLines[0].equals(ChatColor.GOLD + "[SG]")) {
-                    removeSign(signLoc);
+                    this.removeSign(signLoc);
                     continue;
                 }
 
@@ -81,7 +81,7 @@ public class SignManager {
                     Bukkit.getLogger().log(Level.WARNING, "On an attempt to update a sign, the game " +
                             signLines[1] +
                             " could not be found!");
-                    removeSign(signLoc);
+                    this.removeSign(signLoc);
                     continue;
                 }
 
@@ -113,7 +113,7 @@ public class SignManager {
         lobbyConfig.set("lobby.signs", signLocs);
         configManager.saveLobbyConfig();
 
-        if (!isUpdatingTaskActive) updateSignsTask();
+        if (!isUpdatingTaskActive) this.updateSignsTask();
     }
 
     public void removeSign(Location location) {
@@ -128,7 +128,7 @@ public class SignManager {
         configManager.saveLobbyConfig();
 
         //Check if any lobby signs remain to save processing power
-        if (getSignLocations() == null)stopUpdatingSigns();
+        if (this.getSignLocations() == null) stopUpdatingSigns();
     }
 
     public boolean isUpdatingTaskActive() {

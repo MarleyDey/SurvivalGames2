@@ -33,9 +33,9 @@ public class Game {
     private List<String> players;
 
     public Game(Location[] spawnLocations, Location[] chestLocations, Location lobbyLocation, String name,
-                int[] dimensions, int minPlayers, int maxPlayers){
+                int[] dimensions, int minPlayers, int maxPlayers) {
 
-        plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
+        this.plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         this.playerManager = SurvivalGames.GetPlayerManager();
         this.spawnLocations = spawnLocations;
         this.chestLocations = chestLocations;
@@ -54,14 +54,18 @@ public class Game {
      *
      * @return name of the game
      */
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     /**
      * Gets the game status of the game
      *
      * @return status of the game
      */
-    public GameStatus getGameStatus() { return gameStatus; }
+    public GameStatus getGameStatus() {
+        return gameStatus;
+    }
 
     /**
      * This sets the status of the game
@@ -137,7 +141,7 @@ public class Game {
      */
     public List<SgPlayer> getPlayers() {
         List<SgPlayer> sgPlayers = new ArrayList<>();
-        for (String playerUuid : players){
+        for (String playerUuid : players) {
             sgPlayers.add(playerManager.getSgPlayer(playerUuid));
         }
 
@@ -151,14 +155,19 @@ public class Game {
      */
     public List<SgPlayer> getAlivePlayers() {
         List<SgPlayer> alivePlayers = new ArrayList<>();
-        for (SgPlayer player : getPlayers()){
-            if (player.isAlive())alivePlayers.add(player);
+        for (SgPlayer player : getPlayers()) {
+            if (player.isAlive()) alivePlayers.add(player);
         }
 
         return alivePlayers;
     }
 
-    public void waitForPlayers() {
+    /**
+     * Wait for players to join the game through either signs or commands, also
+     * known as the waiting process for the game and will allow the game to start
+     * once the minimum player amount has joined
+     */
+    void waitForPlayers() {
         if (getGameStatus() == GameStatus.WAITING || getGameStatus() == GameStatus.INGAME) {
             Bukkit.getLogger().log(Level.WARNING, "Game is already running!");
             return;
@@ -169,66 +178,73 @@ public class Game {
         if (plugin == null) {
             Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
 
-            forceStop();
+            this.forceStop();
             return;
         }
 
         //Start waiting for the players to join
-        setGameStatus(GameStatus.WAITING);
+        this.setGameStatus(GameStatus.WAITING);
     }
 
-    private void attemptGameStart(){
-        if (getGameStatus() != GameStatus.WAITING){
-            Bukkit.getLogger().log(Level.WARNING, "Attempted to start game when it wasnt in waiting mode!");
+    /**
+     * This is called from the waiting for players to join method and starts
+     * to countdown to the start of the game, this will not proceed to the start
+     * method unless there is still enough players to start the game.
+     */
+    private void attemptGameStart() {
+        if (getGameStatus() != GameStatus.WAITING) {
+            Bukkit.getLogger().log(Level.WARNING, "Attempted to start game when it is not in waiting mode!");
             return;
         }
         //Waiting process is over, we can start the game
-        setGameStatus(GameStatus.STARTING);
+        this.setGameStatus(GameStatus.STARTING);
 
-        broadcastMsg("Attempting to start the game..."); //TODO Make configurable
+        this.broadcastMsg("Attempting to start the game..."); //TODO Make configurable
         Bukkit.getLogger().log(Level.INFO, "Attempting to start game: " + name);
 
         waitingCountdown = 10; //TODO Make configurable
 
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            if (waitingCountdown <= 0){
+            if (waitingCountdown <= 0) {
                 Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
-                if (players.size() < minPlayers){
-                    waitForPlayers();
+                //Check there is still enough players to start the game
+                if (players.size() < minPlayers) {
+                    this.waitForPlayers();
                     return;
                 }
 
-                start();
+                //Still enough players to start the game
+                this.start();
                 return;
             }
 
             if (waitingCountdown % 5 == 0 || waitingCountdown <= 3) {
-                broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
+                this.broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
             }
             waitingCountdown--;
         }, 0L, 20L);
     }
 
 
-    private void start(){
-        restockChests(false);
+    private void start() {
+        this.restockChests(false);
 
         //Assign each player a spawn position
-        assignPlayerSpawns();
+        this.assignPlayerSpawns();
 
         //Send players to their spawn positions
         playersCanMove = false;
-        sendPlayersToSpawn();
+        this.sendPlayersToSpawn();
 
         waitingCountdown = 5; //TODO Make configurable
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            if (waitingCountdown <= 0){
+            if (waitingCountdown <= 0) {
                 Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
 
                 playersCanMove = true;
-                setGameStatus(GameStatus.INGAME);
+                this.setGameStatus(GameStatus.INGAME);
                 return;
             }
 
@@ -242,83 +258,84 @@ public class Game {
          */
     }
 
-    public void stop(){
+    public void stop() {
         Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
         Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         if (plugin == null) {
             Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
 
-            forceStop();
+            this.forceStop();
             return;
         }
 
-        if (getGameStatus() != GameStatus.INGAME){
+        if (getGameStatus() != GameStatus.INGAME) {
             Bukkit.getLogger().log(Level.WARNING, "Attempted to stop a game while it is not in-game!");
             return;
         }
 
-        displayLeaderboard();
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {}, 60L);
+        this.displayLeaderboard();
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+        }, 60L);
 
-        sendPlayersToGameLobby();
+        this.sendPlayersToGameLobby();
 
         //Remove all Sg Players from the game
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
         players.clear();
 
         //Start to reset the map
-        setGameStatus(GameStatus.RESETTING);
+        this.setGameStatus(GameStatus.RESETTING);
         MapEnvironment.ClearDroppedItems(this);
 
         //Reset and restart the game
-        restart();
+        this.restart();
 
     }
 
-    public void forceStop(){
+    public void forceStop() {
         Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
-        setGameStatus(GameStatus.STOPPED);
+        this.setGameStatus(GameStatus.STOPPED);
 
-        sendPlayersToGameLobby();
+        this.sendPlayersToGameLobby();
 
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
         players.clear();
     }
 
-    private void restart(){
-        if (getGameStatus() != GameStatus.RESETTING){
+    private void restart() {
+        if (getGameStatus() != GameStatus.RESETTING) {
             Bukkit.getLogger().log(Level.WARNING, "Attempted to reset a game while it is not in resetting state!");
             return;
         }
 
         MapEnvironment.ClearDroppedItems(this);
 
-        start();
+        this.start();
     }
 
-    private void displayLeaderboard(){
-        broadcastMsg(ChatColor.BLUE + "----  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE  + "----");
+    private void displayLeaderboard() {
+        this.broadcastMsg(ChatColor.BLUE + "----  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE + "----");
         SgPlayer[] players = getLeaderboard();
-        for (int i = 0; i < players.length; i++){
-            broadcastMsg(ChatColor.YELLOW + "" + (i+1) + ChatColor.BLUE + " - " + ChatColor.WHITE + players[i].getName());
+        for (int i = 0; i < players.length; i++) {
+            this.broadcastMsg(ChatColor.YELLOW + "" + (i + 1) + ChatColor.BLUE + " - " + ChatColor.WHITE + players[i].getName());
         }
     }
 
     /**
      * This will restock all the checks of the map
      */
-    private void restockChests(boolean broadcast){
+    private void restockChests(boolean broadcast) {
         MapEnvironment.RestockChests(this);
-        if (broadcast) broadcastMsg("All chests have been restocked!"); //TODO Configurable
+        if (broadcast) this.broadcastMsg("All chests have been restocked!"); //TODO Configurable
 
     }
 
-    private void assignPlayerSpawns(){
+    private void assignPlayerSpawns() {
         int i = 0;
-        for (SgPlayer sgPlayer : getPlayers()){
-            if (spawnLocations.length <= i){
+        for (SgPlayer sgPlayer : getPlayers()) {
+            if (spawnLocations.length <= i) {
                 Bukkit.getLogger().log(Level.SEVERE, "There are more players than spawn points! Stopping game..");
                 return;
             }
@@ -331,15 +348,15 @@ public class Game {
     /**
      * This will send all the players of the game back to their spawn points
      */
-    private void sendPlayersToSpawn(){
-        for (SgPlayer sgPlayer : getPlayers()){
+    private void sendPlayersToSpawn() {
+        for (SgPlayer sgPlayer : getPlayers()) {
             Location spawnLocation = sgPlayer.getSpawnLocation();
 
-            if (spawnLocation == null){
+            if (spawnLocation == null) {
                 Bukkit.getLogger().log(Level.SEVERE, "Player " + sgPlayer.getName() + " has no spawn point set! Stopping game..");
 
                 //Force stop the game to prevent spawn error
-                forceStop();
+                this.forceStop();
                 return;
             }
             sgPlayer.getBukkitPlayer().teleport(spawnLocation);
@@ -349,11 +366,11 @@ public class Game {
     /**
      * This will send all the players of the game back to game lobby
      */
-    private void sendPlayersToGameLobby(){
-        for (SgPlayer sgPlayer : getPlayers()){
+    private void sendPlayersToGameLobby() {
+        for (SgPlayer sgPlayer : getPlayers()) {
             Location spawnLocation = SurvivalGames.GetLobby().getSpawnLocation();
 
-            if (spawnLocation == null){
+            if (spawnLocation == null) {
                 Bukkit.getLogger().log(Level.SEVERE, "The game lobby has no spawn point set! Stopping game..");
                 return;
             }
@@ -364,21 +381,21 @@ public class Game {
     /**
      * This will send all the players of the game back to the lobby location
      */
-    private void sendPlayersToLobby(){
-        for (SgPlayer sgPlayer : getPlayers()){
+    private void sendPlayersToLobby() {
+        for (SgPlayer sgPlayer : getPlayers()) {
             sgPlayer.getBukkitPlayer().teleport(lobbyLocation);
         }
     }
 
-    public SgPlayer[] getLeaderboard(){
+    public SgPlayer[] getLeaderboard() {
         List<SgPlayer> players = getPlayers();
 
         players.sort(Comparator.comparingInt(SgPlayer::getKills).reversed());
         return ParseConverter.SgPlayerListToArray(players);
     }
 
-    public void broadcastMsg(String message){
-        for (SgPlayer sgPlayer : getPlayers()){
+    public void broadcastMsg(String message) {
+        for (SgPlayer sgPlayer : getPlayers()) {
             sgPlayer.getBukkitPlayer().sendMessage(message);
         }
     }
@@ -389,14 +406,14 @@ public class Game {
      * @param player bukkit player
      * @return if the player joined successfully
      */
-    public void playerJoin(Player player){
-        if (players.contains(player.getUniqueId().toString()))return;
+    public void playerJoin(Player player) {
+        if (players.contains(player.getUniqueId().toString())) return;
 
         //Player joins while game is waiting for players
-        if (getGameStatus() == GameStatus.WAITING){
+        if (getGameStatus() == GameStatus.WAITING) {
 
             //Check that there is enough spaces left for player
-            if (players.size() >= maxPlayers){
+            if (players.size() >= maxPlayers) {
                 player.sendMessage(ChatColor.RED + "The game you are trying to join is full!"); //TODO Make configurable
                 return;
             }
@@ -404,7 +421,7 @@ public class Game {
             players.add(player.getUniqueId().toString());
             playerManager.addPlayer(player, this);
 
-            broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
+            this.broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
                     player.getName() + ChatColor.YELLOW + " has joined the game!");
 
             //Teleport player to waiting lobby
@@ -426,7 +443,7 @@ public class Game {
      * @param player bukkit player
      * @return if the player left successfully
      */
-    public void playerLeave(Player player){
+    public void playerLeave(Player player) {
         playerManager.removePlayer(player);
         players.remove(player.getUniqueId().toString());
     }

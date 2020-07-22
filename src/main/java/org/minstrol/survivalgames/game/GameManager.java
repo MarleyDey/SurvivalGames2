@@ -15,11 +15,11 @@ public class GameManager {
 
     private List<Game> games;
 
-    public GameManager(){
+    public GameManager() {
         games = new ArrayList<>();
 
         //Load the games that are already present in the games config
-        loadExistingGames();
+        this.loadExistingGames();
     }
 
     /**
@@ -28,10 +28,10 @@ public class GameManager {
      * @param game Game instance
      * @return If game manager contains game
      */
-    public boolean containsGame(Game game){
-        for (Game gm : games){
-            if (gm == null)continue;
-            if (gm == game)return true;
+    public boolean containsGame(Game game) {
+        for (Game gm : games) {
+            if (gm == null) continue;
+            if (gm == game) return true;
         }
         return false;
     }
@@ -42,12 +42,12 @@ public class GameManager {
      * @param name Game name
      * @return If game manager contains game
      */
-    public boolean containsGame(String name){
-        for (Game gm : games){
-            if (gm == null)continue;
+    public boolean containsGame(String name) {
+        for (Game gm : games) {
+            if (gm == null) continue;
 
             String gameName = gm.getName().toUpperCase();
-            if (gameName.equals(name.toUpperCase()))return true;
+            if (gameName.equals(name.toUpperCase())) return true;
         }
         return false;
     }
@@ -57,8 +57,8 @@ public class GameManager {
      *
      * @param game Game instance to add
      */
-    public void addGame(Game game){
-        if (containsGame(game))return;
+    public void addGame(Game game) {
+        if (this.containsGame(game)) return;
         games.add(game);
     }
 
@@ -67,20 +67,20 @@ public class GameManager {
      *
      * @param name Name of game to add
      */
-    public void addGame(String name){
-        if (containsGame(name))return;
+    public void addGame(String name) {
+        if (this.containsGame(name)) return;
 
-        GameLoader gameLoader = new GameLoader(name);
+        GameLoader gameLoader = new GameLoader(name.toUpperCase());
         Game game = gameLoader.loadGame();
 
-        if (game == null){
-            Bukkit.getLogger().log(Level.SEVERE, "The game " + name + " could not be loaded!");
+        if (game == null) {
+            Bukkit.getLogger().log(Level.SEVERE, "The game [" + name + "] could not be loaded!");
             return;
         }
 
         game.waitForPlayers();
 
-        Bukkit.getLogger().log(Level.INFO, "Game loaded: " + name + " was successful");
+        Bukkit.getLogger().log(Level.INFO, "Game loaded: [" + name + "] was successful");
 
         games.add(game);
     }
@@ -90,8 +90,8 @@ public class GameManager {
      *
      * @param game game instance to remove
      */
-    public void removeGame(Game game){
-        if (!containsGame(game))return;
+    public void removeGame(Game game) {
+        if (!containsGame(game)) return;
         games.remove(game);
     }
 
@@ -100,10 +100,10 @@ public class GameManager {
      *
      * @param name name of game to remove
      */
-    public void removeGame(String name){
-        if (!containsGame(name))return;
+    public void removeGame(String name) {
+        if (!this.containsGame(name.toUpperCase())) return;
 
-        games.remove(getGame(name));
+        games.remove(getGame(name.toUpperCase()));
     }
 
     /**
@@ -112,21 +112,26 @@ public class GameManager {
      * @param name name of the game to get
      * @return Game instance
      */
-    public Game getGame(String name){
-        for (Game gm : games){
-            if (gm == null)continue;
+    public Game getGame(String name) {
+        for (Game gm : games) {
+            if (gm == null) continue;
 
             String gameName = gm.getName().toUpperCase();
-            if (gameName.equalsIgnoreCase(name.toUpperCase()))return gm;
+            if (gameName.equalsIgnoreCase(name.toUpperCase())) return gm;
         }
         return null;
     }
 
-    public String[] getGameNames(){
+    /**
+     * This gets all of the names of the games found in the games config file
+     *
+     * @return All games names
+     */
+    public String[] getGameNames() {
         FileConfiguration gameConfig
                 = SurvivalGames.GetConfigManager().getGameConfig();
 
-        if (gameConfig.get("games.maps") == null){
+        if (gameConfig.get("games.maps") == null) {
             Bukkit.getLogger().log(Level.WARNING, "No games were found in the game config to load!");
             return null;
         }
@@ -139,30 +144,34 @@ public class GameManager {
     /**
      * This will load the games in the games config file
      */
-    private void loadExistingGames(){
+    private void loadExistingGames() {
         String[] gameNames = getGameNames();
 
-        if (gameNames == null)return;
-        for (String name : gameNames){
+        if (gameNames == null) return;
+        for (String name : gameNames) {
 
             GameLoader gameLoader = new GameLoader(name);
             Game game = gameLoader.loadGame();
 
-            if (game == null){
-                Bukkit.getLogger().log(Level.SEVERE, "The game " + name + " could not be loaded!");
+            if (game == null) {
+                Bukkit.getLogger().log(Level.SEVERE, "The game [" + name + "] could not be loaded!");
                 continue;
             }
 
             games.add(game);
-            Bukkit.getLogger().log(Level.INFO, "Game " + name + " has been found and loaded!");
+            Bukkit.getLogger().log(Level.INFO, "Game [" + name + "] has been found and loaded!");
 
+            //Wait for players to join the game
             game.waitForPlayers();
         }
     }
 
-    public void closeGames(){
-        for (Game game : games){
-            game.forceStop(); //TODO Do thread safe stuff
+    /**
+     * This will stop and close all the games using the force close method
+     */
+    public void closeGames() {
+        for (Game game : games) {
+            game.forceStop();
         }
     }
 

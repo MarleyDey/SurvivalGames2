@@ -17,10 +17,9 @@ public class ParseConverter {
      * This converts and parses a location to a string format
      *
      * @param location bukkit location
-     *
      * @return The string version of the location
      */
-    public static String LocationToString(Location location){
+    public static String LocationToString(Location location) {
         return location.getWorld().getName() + ";" +
                 location.getX() + ";" +
                 location.getY() + ";" +
@@ -33,10 +32,9 @@ public class ParseConverter {
      * This converts a string and parses it into a location instance
      *
      * @param locationString string of location
-     *
      * @return bukkit location from string
      */
-    public static Location StringToLocation(String locationString){
+    public static Location StringToLocation(String locationString) {
         String[] locStrs = locationString.split(";");
 
         try {
@@ -47,7 +45,7 @@ public class ParseConverter {
                     Double.valueOf(locStrs[3]),
                     Float.valueOf(locStrs[5]),
                     Float.valueOf(locStrs[4]));
-        } catch (Exception ex){
+        } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "String could not be parsed into a location " +
                     "(world:" + locStrs[0] +
                     " x:" + locStrs[1] + "" +
@@ -64,10 +62,9 @@ public class ParseConverter {
      * format
      *
      * @param date Date to convert
-     *
      * @return The string version of the date
      */
-    public static String DateToString(Date date){
+    public static String DateToString(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
         return dateFormat.format(date);
     }
@@ -77,10 +74,9 @@ public class ParseConverter {
      * This converts a string into a date instance
      *
      * @param dateString The string version of a date
-     *
      * @return The Date instance of the string
      */
-    public static Date StringToDate(String dateString){
+    public static Date StringToDate(String dateString) {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
         try {
             return dateFormat.parse(dateString);
@@ -90,30 +86,30 @@ public class ParseConverter {
         return null;
     }
 
-    public static String[] StringListToArray(List<String> strings){
+    public static String[] StringListToArray(List<String> strings) {
         String[] r = new String[strings.size()];
 
-        for (int i = 0; i < strings.size(); i++){
+        for (int i = 0; i < strings.size(); i++) {
             r[i] = strings.get(i);
         }
 
         return r;
     }
 
-    public static Location[] LocationListToArray(List<Location> locations){
+    public static Location[] LocationListToArray(List<Location> locations) {
         Location[] r = new Location[locations.size()];
 
-        for (int i = 0; i < locations.size(); i++){
+        for (int i = 0; i < locations.size(); i++) {
             r[i] = locations.get(i);
         }
 
         return r;
     }
 
-    public static SgPlayer[] SgPlayerListToArray(List<SgPlayer> players){
+    public static SgPlayer[] SgPlayerListToArray(List<SgPlayer> players) {
         SgPlayer[] r = new SgPlayer[players.size()];
 
-        for (int i = 0; i < players.size(); i++){
+        for (int i = 0; i < players.size(); i++) {
             r[i] = players.get(i);
         }
 

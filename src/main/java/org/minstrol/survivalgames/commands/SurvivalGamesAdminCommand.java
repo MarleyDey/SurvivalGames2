@@ -8,6 +8,8 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.game.Game;
+import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.game.util.GameLoader;
 import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
@@ -48,6 +50,24 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         if (args[0].equalsIgnoreCase("help")){
             sendHelpMessage(sender);
             return;
+        }
+
+        //Remove sub-command
+        if (args[0].equalsIgnoreCase("remove")){
+            if (args.length == 1){
+                sender.sendMessage(ChatColor.RED + "Please specify the game you would like to remove!");
+                return;
+            }
+
+            GameManager gameManager = SurvivalGames.GetGameManager();
+            Game game = gameManager.getGame(args[1]);
+
+            if (game == null){
+                sender.sendMessage(ChatColor.RED + "The game " + args[1] + " does not exist!");
+                return;
+            }
+
+            gameManager.removeGame(game);
         }
 
         //Setup sub-command
@@ -277,7 +297,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 settingGame = true;
 
                 sender.sendMessage(ChatColor.GREEN + " \nChest detection complete!\n" +
-                        ChatColor.AQUA + "The game should now be set up!\n" +
+                        ChatColor.AQUA + "The game id now set up!\n" +
                         ChatColor.GRAY + "You can now set up SG signs to join this game, if you would\n" +
                                          "like to change any other settings you must delete the game\n" +
                                          "and set it up again, to remove the game\n" +

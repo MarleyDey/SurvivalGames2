@@ -10,8 +10,8 @@ public class PlayerManager {
 
     private List<SgPlayer> players;
 
-    public PlayerManager(){
-        players = new ArrayList<SgPlayer>();
+    public PlayerManager() {
+        players = new ArrayList<>();
     }
 
     /**
@@ -20,7 +20,7 @@ public class PlayerManager {
      * @param sgPlayer The Survival games player instance
      * @return player manager contains player
      */
-    private boolean containsPlayer(SgPlayer sgPlayer){
+    private boolean containsPlayer(SgPlayer sgPlayer) {
         return players.contains(sgPlayer);
     }
 
@@ -30,10 +30,10 @@ public class PlayerManager {
      * @param bukkitPlayer Bukkit instance of player
      * @return player manager contains player
      */
-    private boolean containsPlayer(Player bukkitPlayer){
-        for (SgPlayer sgPlayer : players){
-            if (sgPlayer == null)continue;
-            if (sgPlayer.getBukkitPlayer() == null)continue;
+    private boolean containsPlayer(Player bukkitPlayer) {
+        for (SgPlayer sgPlayer : players) {
+            if (sgPlayer == null) continue;
+            if (sgPlayer.getBukkitPlayer() == null) continue;
             if (sgPlayer.getBukkitPlayer() == bukkitPlayer) return true;
         }
         return false;
@@ -45,10 +45,10 @@ public class PlayerManager {
      * @param uuid uuid of player
      * @return player manager contains player
      */
-    private boolean containsPlayer(String uuid){
-        for (SgPlayer sgPlayer : players){
-            if (sgPlayer == null)continue;
-            if (sgPlayer.getBukkitPlayer() == null)continue;
+    private boolean containsPlayer(String uuid) {
+        for (SgPlayer sgPlayer : players) {
+            if (sgPlayer == null) continue;
+            if (sgPlayer.getBukkitPlayer() == null) continue;
             if (sgPlayer.getBukkitPlayer().getUniqueId().toString().toLowerCase().equals(uuid.toUpperCase()))
                 return true;
         }
@@ -60,8 +60,8 @@ public class PlayerManager {
      *
      * @param sgPlayer SgPlayer instance
      */
-    public void addPlayer(SgPlayer sgPlayer){
-        if (containsPlayer(sgPlayer))return;
+    public void addPlayer(SgPlayer sgPlayer) {
+        if (this.containsPlayer(sgPlayer)) return;
         players.add(sgPlayer);
     }
 
@@ -70,10 +70,10 @@ public class PlayerManager {
      * instance of a SgPlayer
      *
      * @param player bukkit player instance
-     * @param game the game the player is in
+     * @param game   the game the player is in
      */
-    public void addPlayer(Player player, Game game){
-        if (containsPlayer(player))return;
+    public void addPlayer(Player player, Game game) {
+        if (this.containsPlayer(player)) return;
         players.add(new SgPlayer(game, player.getUniqueId().toString(), player.getName()));
     }
 
@@ -82,8 +82,8 @@ public class PlayerManager {
      *
      * @param sgPlayer the sg player instance
      */
-    public void removePlayer(SgPlayer sgPlayer){
-        if (!containsPlayer(sgPlayer))return;
+    public void removePlayer(SgPlayer sgPlayer) {
+        if (!this.containsPlayer(sgPlayer)) return;
         players.remove(sgPlayer);
     }
 
@@ -92,8 +92,8 @@ public class PlayerManager {
      *
      * @param player the bukkit player instance
      */
-    public void removePlayer(Player player){
-        if (!containsPlayer(player))return;
+    public void removePlayer(Player player) {
+        if (!this.containsPlayer(player)) return;
         players.remove(getSgPlayer(player));
 
     }
@@ -104,11 +104,11 @@ public class PlayerManager {
      * @param player bukkit player
      * @return The SgPlayer instance of the bukkit player
      */
-    public SgPlayer getSgPlayer(Player player){
-        for (SgPlayer sgPlayer : players){
-            if (sgPlayer == null)continue;
-            if (sgPlayer.getBukkitPlayer() == null)continue;
-            if (sgPlayer.getBukkitPlayer() == player)return sgPlayer;
+    public SgPlayer getSgPlayer(Player player) {
+        for (SgPlayer sgPlayer : players) {
+            if (sgPlayer == null) continue;
+            if (sgPlayer.getBukkitPlayer() == null) continue;
+            if (sgPlayer.getBukkitPlayer() == player) return sgPlayer;
         }
         return null;
     }
@@ -119,10 +119,10 @@ public class PlayerManager {
      * @param uuid bukkit player uuid string
      * @return The SgPlayer instance of the bukkit player
      */
-    public SgPlayer getSgPlayer(String uuid){
-        for (SgPlayer sgPlayer : players){
-            if (sgPlayer == null)continue;
-            if (sgPlayer.getBukkitPlayer() == null)continue;
+    public SgPlayer getSgPlayer(String uuid) {
+        for (SgPlayer sgPlayer : players) {
+            if (sgPlayer == null) continue;
+            if (sgPlayer.getBukkitPlayer() == null) continue;
             if (sgPlayer.getBukkitPlayer().getUniqueId().toString().toLowerCase().equals(uuid.toLowerCase()))
                 return sgPlayer;
         }
@@ -134,9 +134,9 @@ public class PlayerManager {
      *
      * @param game Game of SgPlayers
      */
-    public void clearGamePlayers(Game game){
-        for (SgPlayer sgPlayer : players){
-            if (sgPlayer == null)continue;
+    public void clearGamePlayers(Game game) {
+        for (SgPlayer sgPlayer : players) {
+            if (sgPlayer == null) continue;
             if (sgPlayer.getActiveGame() == null || sgPlayer.getActiveGame() == game)
                 players.remove(sgPlayer);
         }
@@ -147,11 +147,11 @@ public class PlayerManager {
      *
      * @param game Game of SgPlayers
      */
-    public List<SgPlayer> getSgPlayersFromGame(Game game){
+    public List<SgPlayer> getSgPlayersFromGame(Game game) {
         List<SgPlayer> gamePlayers = new ArrayList<SgPlayer>();
 
-        for (SgPlayer sgPlayer : players){
-            if (sgPlayer == null)continue;
+        for (SgPlayer sgPlayer : players) {
+            if (sgPlayer == null) continue;
             if (sgPlayer.getActiveGame() != null && sgPlayer.getActiveGame() == game)
                 gamePlayers.add(sgPlayer);
         }

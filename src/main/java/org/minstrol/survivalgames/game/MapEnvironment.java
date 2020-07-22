@@ -5,7 +5,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.entity.Entity;
 
 import java.util.Collection;
@@ -18,11 +17,11 @@ public class MapEnvironment {
      *
      * @param game The game with the chests to restock
      */
-    public static void RestockChests(Game game){
+    public static void RestockChests(Game game) {
         Location[] chestLocations = game.getChestLocations();
 
-        for (Location chestLocation : chestLocations){
-            if (!confirmBlock(chestLocation, Material.CHEST)){
+        for (Location chestLocation : chestLocations) {
+            if (!ConfirmBlock(chestLocation, Material.CHEST)) {
                 Bukkit.getLogger().log(Level.WARNING, "When loading chests the chest at (" +
                         chestLocation.getBlockX() + "," +
                         chestLocation.getBlockY() + "," +
@@ -55,7 +54,7 @@ public class MapEnvironment {
                     //Gets entites within the block, no added radius.
                     Collection<Entity> entities = world.getNearbyEntities(loc, 0.5, 0.5, 0.5);
                     for (Entity entity : entities) {
-                        if (!entity.isOnGround())continue;
+                        if (!entity.isOnGround()) continue;
                         entity.remove();
                     }
                 }
@@ -68,12 +67,11 @@ public class MapEnvironment {
      *
      * @param location Location of block
      * @param material The material of the block
-     *
      * @return Whether the block is confirmed
      */
-    private static boolean confirmBlock(Location location, Material material){
-        if (location == null)return false;
-        if (material == null)return false;
+    private static boolean ConfirmBlock(Location location, Material material) {
+        if (location == null) return false;
+        if (material == null) return false;
 
         World world = location.getWorld();
         Block block = world.getBlockAt(location);
