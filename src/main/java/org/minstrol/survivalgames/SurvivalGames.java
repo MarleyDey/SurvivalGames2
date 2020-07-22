@@ -7,6 +7,7 @@ import org.minstrol.survivalgames.commands.CommandManager;
 import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.listeners.PlayerDeathListener;
 import org.minstrol.survivalgames.listeners.PlayerMovingListener;
+import org.minstrol.survivalgames.listeners.PlayerQuitListener;
 import org.minstrol.survivalgames.listeners.SignListeners;
 import org.minstrol.survivalgames.lobby.Lobby;
 import org.minstrol.survivalgames.lobby.SignManager;
@@ -25,7 +26,8 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     private Listener[] listeners = new Listener[]{
             new PlayerMovingListener(),
             new PlayerDeathListener(),
-            new SignListeners()
+            new SignListeners(),
+            new PlayerQuitListener()
     };
 
     private CommandManager commandManager

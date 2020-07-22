@@ -49,7 +49,7 @@ public class GameLoader {
             return null;
         }
 
-        return new Game(chestLocations, spawnLocations, lobbyLocation, gameName, getMapDimensions(gameConfig, configPath), getMinPlayers(), getMaxPlayers());
+        return new Game(spawnLocations, chestLocations, lobbyLocation, gameName, getMapDimensions(gameConfig, configPath), getMinPlayers(), getMaxPlayers());
     }
 
     private Location[] getChestLocations(){

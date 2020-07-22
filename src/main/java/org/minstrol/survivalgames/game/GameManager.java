@@ -78,7 +78,7 @@ public class GameManager {
             return;
         }
 
-        game.start();
+        game.waitForPlayers();
 
         Bukkit.getLogger().log(Level.INFO, "Game loaded: " + name + " was successful");
 
@@ -156,7 +156,7 @@ public class GameManager {
             games.add(game);
             Bukkit.getLogger().log(Level.INFO, "Game " + name + " has been found and loaded!");
 
-            game.start();
+            game.waitForPlayers();
         }
     }
 

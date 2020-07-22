@@ -24,17 +24,18 @@ public class Game {
     private int maxPlayers,
             minPlayers,
             waitingCountdown = 10,
-            waitingCountdownTask = 0,
-            waitingTask = 0;
+            waitingCountdownTask = 0;
     private Location[] spawnLocations, chestLocations;
     private GameStatus gameStatus = GameStatus.STOPPED;
+    private Plugin plugin;
 
     private PlayerManager playerManager;
-
     private List<String> players;
 
     public Game(Location[] spawnLocations, Location[] chestLocations, Location lobbyLocation, String name,
                 int[] dimensions, int minPlayers, int maxPlayers){
+
+        plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         this.playerManager = SurvivalGames.GetPlayerManager();
         this.spawnLocations = spawnLocations;
         this.chestLocations = chestLocations;
@@ -157,16 +158,14 @@ public class Game {
         return alivePlayers;
     }
 
-
-    public void start(){
-        if (getGameStatus() == GameStatus.WAITING || getGameStatus() == GameStatus.INGAME){
+    public void waitForPlayers() {
+        if (getGameStatus() == GameStatus.WAITING || getGameStatus() == GameStatus.INGAME) {
             Bukkit.getLogger().log(Level.WARNING, "Game is already running!");
             return;
         }
 
-        Bukkit.getLogger().log(Level.INFO, "Starting game " + name + "...");
+        Bukkit.getLogger().log(Level.INFO, "Game " + name + " is waiting for players...");
 
-        Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         if (plugin == null) {
             Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
 
@@ -176,41 +175,43 @@ public class Game {
 
         //Start waiting for the players to join
         setGameStatus(GameStatus.WAITING);
+    }
 
-        waitingCountdown = 10; //TODO Make configurable
-        boolean enoughPlayers = false;
-
-        //Lobby waiting process
-        while (!enoughPlayers) {
-
-            waitingTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-                if (players.size() >= minPlayers) Bukkit.getScheduler().cancelTask(waitingTask);
-            }, 0L, 10L);
-
-            //Enough players have joined, start game countdown
-            enoughPlayers = true;
-
-            broadcastMsg("Attempting to start the game..."); //TODO Make configurable
-
-
-            waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-                if (waitingCountdown <= 0){
-                    Bukkit.getScheduler().cancelTask(waitingCountdownTask);
-                    return;
-                }
-
-                broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
-                waitingCountdown--;
-            }, 0L, 20L);
-
-            if (players.size() < minPlayers){
-                enoughPlayers = false;
-            }
+    private void attemptGameStart(){
+        if (getGameStatus() != GameStatus.WAITING){
+            Bukkit.getLogger().log(Level.WARNING, "Attempted to start game when it wasnt in waiting mode!");
+            return;
         }
-
         //Waiting process is over, we can start the game
         setGameStatus(GameStatus.STARTING);
 
+        broadcastMsg("Attempting to start the game..."); //TODO Make configurable
+        Bukkit.getLogger().log(Level.INFO, "Attempting to start game: " + name);
+
+        waitingCountdown = 10; //TODO Make configurable
+
+        waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            if (waitingCountdown <= 0){
+                Bukkit.getScheduler().cancelTask(waitingCountdownTask);
+
+                if (players.size() < minPlayers){
+                    waitForPlayers();
+                    return;
+                }
+
+                start();
+                return;
+            }
+
+            if (waitingCountdown % 5 == 0 || waitingCountdown <= 3) {
+                broadcastMsg("Starting game in " + waitingCountdown); //TODO  Make configurable
+            }
+            waitingCountdown--;
+        }, 0L, 20L);
+    }
+
+
+    private void start(){
         restockChests(false);
 
         //Assign each player a spawn position
@@ -224,15 +225,16 @@ public class Game {
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             if (waitingCountdown <= 0){
                 Bukkit.getScheduler().cancelTask(waitingCountdownTask);
+
+
+                playersCanMove = true;
+                setGameStatus(GameStatus.INGAME);
                 return;
             }
 
             broadcastMsg("Prepare to run in " + waitingCountdown); //TODO  Make configurable
             waitingCountdown--;
         }, 0L, 20L);
-
-        playersCanMove = true;
-        setGameStatus(GameStatus.INGAME);
 
         /**
          * This is the end of this method, instead the stop method is called
@@ -241,7 +243,6 @@ public class Game {
     }
 
     public void stop(){
-        Bukkit.getScheduler().cancelTask(waitingTask);
         Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
         Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
@@ -276,7 +277,6 @@ public class Game {
     }
 
     public void forceStop(){
-        Bukkit.getScheduler().cancelTask(waitingTask);
         Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
         setGameStatus(GameStatus.STOPPED);
@@ -324,6 +324,7 @@ public class Game {
             }
 
             sgPlayer.setSpawnLocation(spawnLocations[i]);
+            i++;
         }
     }
 
@@ -391,17 +392,32 @@ public class Game {
     public void playerJoin(Player player){
         if (players.contains(player.getUniqueId().toString()))return;
 
-        players.add(player.getUniqueId().toString());
-        playerManager.addPlayer(player, this);
-
         //Player joins while game is waiting for players
         if (getGameStatus() == GameStatus.WAITING){
+
+            //Check that there is enough spaces left for player
+            if (players.size() >= maxPlayers){
+                player.sendMessage(ChatColor.RED + "The game you are trying to join is full!"); //TODO Make configurable
+                return;
+            }
+
+            players.add(player.getUniqueId().toString());
+            playerManager.addPlayer(player, this);
+
             broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
                     player.getName() + ChatColor.YELLOW + " has joined the game!");
 
             //Teleport player to waiting lobby
             player.teleport(lobbyLocation);
+
+            //If the minimum players requireed to start the game is reached then attempt to start the game
+            if (players.size() >= minPlayers) attemptGameStart();
+            return;
         }
+
+        player.sendMessage(ChatColor.RED + "This game is currently not joinable!");
+
+
     }
 
     /**

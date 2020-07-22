@@ -46,16 +46,6 @@ public class SignListeners implements Listener {
             return;
         }
 
-        //Players can only join in a waiting state
-        if (game.getGameStatus() != GameStatus.WAITING)return;
-
-        //Check game is not full
-        if (game.getPlayers().size() >= game.getMaxPlayers()){
-            player.sendMessage(ChatColor.RED + "The game you are trying to join is currently full!");
-            return;
-        }
-
-        player.sendMessage(ChatColor.GREEN + "Attempting to join " + ChatColor.YELLOW + game.getName());
         game.playerJoin(player);
     }
 

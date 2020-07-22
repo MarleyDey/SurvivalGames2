@@ -31,7 +31,7 @@ public class MapEnvironment {
                 continue;
             }
 
-            Chest chest = (Chest) chestLocation.getWorld().getBlockAt(chestLocation);
+            //Chest chest = (Chest) chestLocation.getWorld().getBlockAt(chestLocation);
             //TODO Restock the chest block
 
         }
