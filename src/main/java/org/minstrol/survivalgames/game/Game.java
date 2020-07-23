@@ -243,7 +243,7 @@ public class Game {
         playersCanMove = false;
         this.sendPlayersToSpawn();
 
-        this.broadcastMsg(ChatColor.DARK_AQUA + "Welcome to Survival Games! Have fun.");
+        this.broadcastMsg(ChatColor.AQUA + " \nWelcome to Survival Games! Have fun.\n ");
 
         waitingCountdown = 5; //TODO Make configurable
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -262,7 +262,7 @@ public class Game {
 
             broadcastMsg(ChatColor.YELLOW + "Prepare to run in " + ChatColor.RED + waitingCountdown); //TODO  Make configurable
             waitingCountdown--;
-        }, 0L, 20L);
+        }, 20L, 20L);
 
         /**
          * This is the end of this method, instead the stop method is called
@@ -413,7 +413,7 @@ public class Game {
 
     private void displayLeaderboard() {
         this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + "-------  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE + "-------\n" +
-                ChatColor.GREEN + "" + ChatColor.BOLD + "       Final Survivor: " + ChatColor.YELLOW + this.getAlivePlayers().get(0).getName() + "\n");
+                ChatColor.GREEN + "" + ChatColor.BOLD + "     Final Survivor: " + ChatColor.YELLOW + this.getAlivePlayers().get(0).getName() + "\n");
         SgPlayer[] players = this.getLeaderboard();
         for (int i = 0; i < players.length; i++) {
             SgPlayer sgPlayer = players[i];
@@ -421,6 +421,7 @@ public class Game {
             this.broadcastMsg(ChatColor.YELLOW + "       " + ChatColor.BOLD + (i + 1) + ChatColor.BLUE + " - " + ChatColor.RESET + ChatColor.WHITE + sgPlayer.getName()
                     + ChatColor.YELLOW + " (" + ChatColor.AQUA + sgPlayer.getKills() + ChatColor.YELLOW + ") kill(s)");
         }
+        this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + "----------------------------\n ");
     }
 
     public SgPlayer[] getLeaderboard() {
@@ -463,6 +464,8 @@ public class Game {
             //Teleport player to waiting lobby
             player.teleport(lobbyLocation);
             player.setGameMode(GameMode.ADVENTURE);
+            player.setHealth(20);
+            player.setFoodLevel(20);
 
             //If the minimum players requireed to start the game is reached then attempt to start the game
             if (players.size() >= minPlayers) attemptGameStart();

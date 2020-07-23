@@ -5,9 +5,16 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.util.ConfigManager;
 
-import java.util.Collection;
+import java.text.ParseException;
+import java.util.*;
 import java.util.logging.Level;
 
 public class MapEnvironment {
@@ -19,6 +26,7 @@ public class MapEnvironment {
      */
     public static void RestockChests(Game game) {
         Location[] chestLocations = game.getChestLocations();
+        Random random = new Random();
 
         for (Location chestLocation : chestLocations) {
             if (!ConfirmBlock(chestLocation, Material.CHEST)) {
@@ -30,10 +38,69 @@ public class MapEnvironment {
                 continue;
             }
 
-            //Chest chest = (Chest) chestLocation.getWorld().getBlockAt(chestLocation);
+            Chest chest = (Chest) chestLocation.getWorld().getBlockAt(chestLocation);
+            Inventory chestInv = chest.getBlockInventory();
+
+            Map<ItemStack, Double> itemProbabiltyMap = GetItemProbabilityMap();
+
             //TODO Restock the chest block
 
         }
+    }
+
+    private static Map<ItemStack, Double> GetItemProbabilityMap(){
+        Map<ItemStack, Double> itemProbabilityMap = new HashMap<>();
+
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        FileConfiguration config = configManager.getConfig();
+
+        if (config.get("chests.items") == null){
+            Bukkit.getLogger().log(Level.SEVERE, "Chests have no items specified to fill with!");
+            return null;
+        }
+
+        List<String> itemProbStrings = config.getStringList("chests.items");
+        double probabilityTotal = 0;
+
+        for (String itemProb : itemProbStrings){
+            String[] itemProbSplit = itemProb.split(";");
+
+            Material material = Material.getMaterial(itemProbSplit[0].toUpperCase());
+
+            if (material == null){
+                Bukkit.getLogger().log(Level.SEVERE, "Material " + itemProbSplit[0] + " does not exist from the config!");
+                return null;
+            }
+
+            try {
+                Integer.valueOf(itemProbSplit[1]);
+            } catch (NumberFormatException ex){
+                Bukkit.getLogger().log(Level.SEVERE,  itemProbSplit[1] + " is not a parsable amount number from the config!");
+                return null;
+            }
+
+            try {
+                Double.valueOf(itemProbSplit[2]);
+            } catch (NumberFormatException ex){
+                Bukkit.getLogger().log(Level.SEVERE,  itemProbSplit[1] + " is not a parsable probability number from the config!");
+                return null;
+            }
+
+            int amount = Integer.valueOf(itemProbSplit[1]);
+            double probability = Double.valueOf(itemProbSplit[2]);
+
+            probabilityTotal += probability;
+
+            itemProbabilityMap.put(new ItemStack(material, amount), probability);
+        }
+
+        if (probabilityTotal != 100){
+            Bukkit.getLogger().log(Level.SEVERE, "When determining the items for chests, the probability of all the" +
+                    " items didnt add up to 100, instead " + probabilityTotal + ".");
+            return null;
+        }
+
+        return itemProbabilityMap;
     }
 
     /**

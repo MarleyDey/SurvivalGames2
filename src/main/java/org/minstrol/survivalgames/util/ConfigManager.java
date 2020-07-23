@@ -13,12 +13,13 @@ import java.util.logging.Level;
 
 public class ConfigManager {
 
-    private FileConfiguration gameConfig, playerConfig, lobbyConfig;
-    private File gameConfigFile, playerConfigFile, lobbyConfigFile;
+    private FileConfiguration gameConfig, playerConfig, lobbyConfig, config;
+    private File gameConfigFile, playerConfigFile, lobbyConfigFile, configFile;
     private String
             playerFileName = "players.yml",
             gamesFileName = "games.yml",
-            lobbyFileName = "lobby.yml";
+            lobbyFileName = "lobby.yml",
+            configFileName = "config.yml";
 
     private Plugin plugin;
 
@@ -137,6 +138,14 @@ public class ConfigManager {
     }
 
     /**
+     * Reloads the config file
+     */
+    public void reloadConfig() {
+        configFile = checkConfigLocation(configFile, configFileName);
+        config = rldCustomConfig(configFile, configFileName);
+    }
+
+    /**
      * Reloads the custom game config file
      */
     public void reloadGameConfig() {
@@ -161,6 +170,13 @@ public class ConfigManager {
     }
 
     /**
+     * Saves the config file
+     */
+    public void saveConfig() {
+        saveCustomConfig(checkConfigLocation(configFile, configFileName), getConfig());
+    }
+
+    /**
      * Saves the custom game config file
      */
     public void saveGameConfig() {
@@ -179,6 +195,18 @@ public class ConfigManager {
      */
     public void saveLobbyConfig() {
         saveCustomConfig(checkConfigLocation(lobbyConfigFile, lobbyFileName), getLobbyConfig());
+    }
+
+    /**
+     * Gets the config file as a bukkit configuration
+     *
+     * @return bukkit config
+     */
+    public FileConfiguration getConfig() {
+        if (config == null) {
+            reloadConfig();
+        }
+        return config;
     }
 
     /**

@@ -1,0 +1,5 @@
+chests:
+  restock-time: 10
+  items:
+    - DIRT:12:20
+    - STONE:1:80
