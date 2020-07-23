@@ -52,6 +52,26 @@ public class SurvivalGamesAdminCommand extends SgCommand {
             return;
         }
 
+        //Lobby sub-command
+        if (args[0].equalsIgnoreCase("lobby")){
+            if (args.length == 1){
+                sendLobbyHelpMessage(sender);
+                return;
+            }
+
+            if (args[1].equalsIgnoreCase("setspawn")){
+                if (sender instanceof ConsoleCommandSender){
+                    sender.sendMessage(ChatColor.RED + "The set spawn lobby sub-command is not supported by the console!");
+                    return;
+                }
+                Player player = (Player) sender;
+
+                SurvivalGames.GetLobby().setSpawnLocation(player.getLocation());
+                sender.sendMessage(ChatColor.GREEN + "You have set the lobby spawn point!");
+                return;
+            }
+        }
+
         //Remove sub-command
         if (args[0].equalsIgnoreCase("remove")){
             if (args.length == 1){
@@ -330,6 +350,13 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         sender.sendMessage(ChatColor.GRAY +         "    - Force restart the named game");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin forcerestock [name]");
         sender.sendMessage(ChatColor.GRAY +         "    - Force restock all the chests in named game");
+        sender.sendMessage(ChatColor.BLUE +         "-------------------------------------------");
+    }
+
+    private void sendLobbyHelpMessage(CommandSender sender){
+        sender.sendMessage(ChatColor.BLUE +         "-----------" + ChatColor.YELLOW + " SG Admin Help " + ChatColor.BLUE + "----------");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin lobby setspawn");
+        sender.sendMessage(ChatColor.GRAY +         "    - Sets the lobby spawn location");
         sender.sendMessage(ChatColor.BLUE +         "-------------------------------------------");
     }
 

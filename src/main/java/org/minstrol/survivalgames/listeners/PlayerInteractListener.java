@@ -1,36 +1,24 @@
 package org.minstrol.survivalgames.listeners;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.players.SgPlayer;
 
-public class PlayerMovingListener implements Listener {
+public class PlayerInteractListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
-    public void on(PlayerMoveEvent event){
-        if (event.isCancelled())return;
-
+    public void on(PlayerInteractEvent event){
         Player player = event.getPlayer();
         SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
 
         if (sgPlayer == null)return;
 
         if (!sgPlayer.getActiveGame().isPlayersCanMove()){
-            Location from = event.getFrom();
-            Location to = event.getTo();
-
-            if (from.getX() != to.getX()) {
-                event.setCancelled(true);
-                return;
-            }
-            if (from.getZ() != to.getZ()) {
-                event.setCancelled(true);
-            }
+            event.setCancelled(true);
         }
     }
 }

@@ -3,11 +3,11 @@ package org.minstrol.survivalgames.listeners;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -15,7 +15,6 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
-import org.minstrol.survivalgames.game.GameStatus;
 import org.minstrol.survivalgames.lobby.SignManager;
 
 import java.util.List;
@@ -24,7 +23,7 @@ import java.util.logging.Level;
 public class SignListeners implements Listener {
 
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void on(PlayerInteractEvent event){
         Player player = event.getPlayer();
 
@@ -49,7 +48,7 @@ public class SignListeners implements Listener {
         game.playerJoin(player);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.NORMAL)
     public void on(SignChangeEvent event){
         String[] signLines = event.getLines();
 
@@ -74,7 +73,7 @@ public class SignListeners implements Listener {
         event.getPlayer().sendMessage(ChatColor.GREEN + "You have set up a SG lobby sign!");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.NORMAL)
     public void on(BlockBreakEvent event){
         Block block = event.getBlock();
 

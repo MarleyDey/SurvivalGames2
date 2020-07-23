@@ -3,7 +3,7 @@ example:
     maps:
       name-of-map:
         options:
-          max-players: 2
+          max-players:   2
           min-players: 1
 
         chests:

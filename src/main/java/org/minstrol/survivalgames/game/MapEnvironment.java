@@ -43,12 +43,33 @@ public class MapEnvironment {
      */
     public static void ClearDroppedItems(Game game) {
         World world = game.getLobbyLocation().getWorld();
-        int[] mapDim = game.getMapDimensions();
+        int[] dimensions = game.getMapDimensions();
 
         //Iterate through every block in game map arena
-        for (int x = mapDim[0]; x < mapDim[1]; x++) {
-            for (int z = mapDim[4]; z < mapDim[5]; z++) {
-                for (int y = mapDim[2]; y < mapDim[3]; y++) {
+        int lx, ux, ly, uy, lz, uz;
+
+        //Upper and lower of x dimension
+        lx = Math.min(dimensions[0], dimensions[1]);
+        ux = Math.max(dimensions[0], dimensions[1]);
+
+        //Upper and lower of y dimension
+        ly = Math.min(dimensions[2], dimensions[3]);
+        uy = Math.max(dimensions[2], dimensions[3]);
+
+        //Upper and lower of z dimension
+        lz = Math.min(dimensions[4], dimensions[5]);
+        uz = Math.max(dimensions[4], dimensions[5]);
+
+        int chestAmount = 1;
+
+        //X dimension
+        for (int x = lx; x < ux; x++) {
+
+            //Y dimension
+            for (int y = ly; y < uy; y++) {
+
+                //Z dimension
+                for (int z = lz; z < uz; z++) {
                     Location loc = new Location(world, x + 0.5, y + 0.5, z + 0.5);
 
                     //Gets entites within the block, no added radius.
