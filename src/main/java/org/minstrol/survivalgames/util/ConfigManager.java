@@ -143,6 +143,8 @@ public class ConfigManager {
     public void reloadConfig() {
         configFile = checkConfigLocation(configFile, configFileName);
         config = rldCustomConfig(configFile, configFileName);
+
+        saveConfig();
     }
 
     /**
@@ -151,6 +153,8 @@ public class ConfigManager {
     public void reloadGameConfig() {
         gameConfigFile = checkConfigLocation(gameConfigFile, gamesFileName);
         gameConfig = rldCustomConfig(gameConfigFile, gamesFileName);
+
+        saveGameConfig();
     }
 
     /**
@@ -159,6 +163,8 @@ public class ConfigManager {
     public void reloadPlayerConfig() {
         playerConfigFile = checkConfigLocation(playerConfigFile, playerFileName);
         playerConfig = rldCustomConfig(playerConfigFile, playerFileName);
+
+        savePlayerConfig();
     }
 
     /**
@@ -167,6 +173,8 @@ public class ConfigManager {
     public void reloadLobbyConfig() {
         lobbyConfigFile = checkConfigLocation(lobbyConfigFile, lobbyFileName);
         lobbyConfig = rldCustomConfig(lobbyConfigFile, lobbyFileName);
+
+        saveLobbyConfig();
     }
 
     /**
@@ -264,12 +272,15 @@ public class ConfigManager {
                     "UTF8");
 
         } catch (UnsupportedEncodingException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Could not find " + configFileName + " config resource in jar", ex);
+            plugin.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Could not find " + configFileName + " config resource in jar", ex);
         }
         if (defConfigStream != null) {
             YamlConfiguration defConfig
                     = YamlConfiguration.loadConfiguration(defConfigStream);
 
+            config.options().copyDefaults(true);
+            config.options().copyHeader(true);
+            config.options().header("Config File");
             config.setDefaults(defConfig);
         }
 
@@ -289,7 +300,7 @@ public class ConfigManager {
         try {
             config.save(configFile);
         } catch (IOException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save game config to " + configFile, ex);
+            plugin.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Could not save game config to " + configFile, ex);
         }
     }
 

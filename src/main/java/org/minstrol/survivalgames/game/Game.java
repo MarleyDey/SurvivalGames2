@@ -319,7 +319,7 @@ public class Game {
 
     private void restart() {
         if (getGameStatus() != GameStatus.RESETTING) {
-            Bukkit.getLogger().log(Level.WARNING, "Attempted to reset a game while it is not in resetting state!");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Attempted to reset a game while it is not in resetting state!");
             return;
         }
 
@@ -341,7 +341,7 @@ public class Game {
         int i = 0;
         for (SgPlayer sgPlayer : getPlayers()) {
             if (spawnLocations.length <= i) {
-                Bukkit.getLogger().log(Level.SEVERE, "There are more players than spawn points! Stopping game..");
+                Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "There are more players than spawn points! Stopping game..");
                 return;
             }
 
@@ -358,7 +358,7 @@ public class Game {
             Location spawnLocation = sgPlayer.getSpawnLocation();
 
             if (spawnLocation == null) {
-                Bukkit.getLogger().log(Level.SEVERE, "Player " + sgPlayer.getName() + " has no spawn point set! Stopping game..");
+                Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Player " + sgPlayer.getName() + " has no spawn point set! Stopping game..");
 
                 //Force stop the game to prevent spawn error
                 this.forceStop();
@@ -376,7 +376,7 @@ public class Game {
             Location spawnLocation = SurvivalGames.GetLobby().getSpawnLocation();
 
             if (spawnLocation == null) {
-                Bukkit.getLogger().log(Level.SEVERE, "The game lobby has no spawn point set! Stopping game..");
+                Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game lobby has no spawn point set! Stopping game..");
                 return;
             }
             sgPlayer.getBukkitPlayer().teleport(spawnLocation);
@@ -412,8 +412,8 @@ public class Game {
     }
 
     private void displayLeaderboard() {
-        this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + "-------  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE + "-------\n" +
-                ChatColor.GREEN + "" + ChatColor.BOLD + "     Final Survivor: " + ChatColor.YELLOW + this.getAlivePlayers().get(0).getName() + "\n");
+        this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + " \n-------  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE + "-------\n \n" +
+                ChatColor.GREEN + "" + ChatColor.BOLD + "     Final Survivor: " + ChatColor.YELLOW + this.getAlivePlayers().get(0).getName() + "\n ");
         SgPlayer[] players = this.getLeaderboard();
         for (int i = 0; i < players.length; i++) {
             SgPlayer sgPlayer = players[i];
@@ -421,7 +421,7 @@ public class Game {
             this.broadcastMsg(ChatColor.YELLOW + "       " + ChatColor.BOLD + (i + 1) + ChatColor.BLUE + " - " + ChatColor.RESET + ChatColor.WHITE + sgPlayer.getName()
                     + ChatColor.YELLOW + " (" + ChatColor.AQUA + sgPlayer.getKills() + ChatColor.YELLOW + ") kill(s)");
         }
-        this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + "----------------------------\n ");
+        this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + " \n-------------------------\n ");
     }
 
     public SgPlayer[] getLeaderboard() {

@@ -119,7 +119,7 @@ public class GameLoader {
         Location[] chestLocations = this.getChestLocations();
 
         if (chestLocations == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "The game [" + gameName +
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game [" + gameName +
                     "] could not be loaded due to one or more invalid chest locations. Try setting them up again!");
             return null;
         }
@@ -127,7 +127,7 @@ public class GameLoader {
         Location[] spawnLocations = this.getSpawnLocations();
 
         if (spawnLocations == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "The game [" + gameName +
+            Bukkit.getLogger().log(Level.SEVERE,"[SurvivalGames] " + "The game [" + gameName +
                     "] could not be loaded due to one or more invalid spawn locations. Try setting them up again!");
             return null;
         }
@@ -135,7 +135,7 @@ public class GameLoader {
         Location lobbyLocation = this.getLobbyLocation();
 
         if (lobbyLocation == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "The game [" + gameName +
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game [" + gameName +
                     "] could not be loaded due to an invalid lobby location. Try setting the location again!");
             return null;
         }

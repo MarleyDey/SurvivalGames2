@@ -1,5 +1,16 @@
 chests:
   restock-time: 10
+  max-items-in-chest: 6
+  min-items-in-chest: 3
   items:
-    - DIRT:12:20
-    - STONE:1:80
+    1:
+      material: DIRT
+      amount: 12
+      probability: 80
+    2:
+      material: DIAMOND_SWORD
+      amount: 1
+      probability: 20
+      enchantments:
+        - DAMAGE_ALL;3
+        - DURABILITY;1

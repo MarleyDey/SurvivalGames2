@@ -22,7 +22,6 @@ public class SurvivalGames extends JavaPlugin implements Listener {
 
     private Listener[] listeners = new Listener[]{
             new PlayerMovingListener(),
-            new PlayerDeathListener(),
             new SignListeners(),
             new PlayerQuitListener(),
             new PlayerDamageListener()

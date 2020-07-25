@@ -41,7 +41,7 @@ public class SignManager {
         Location[] locationStrs = ConfigManager.GetLocations(lobbyConfig, "lobby.signs");
 
         if (locationStrs == null) {
-            Bukkit.getLogger().log(Level.WARNING, "No sign location were found in the lobby!");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "No sign location were found in the lobby!");
             return null;
         }
 
@@ -78,7 +78,7 @@ public class SignManager {
 
                 Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
                 if (game == null) {
-                    Bukkit.getLogger().log(Level.WARNING, "On an attempt to update a sign, the game " +
+                    Bukkit.getLogger().log(Level.WARNING,"[SurvivalGames] " +  "On an attempt to update a sign, the game " +
                             signLines[1] +
                             " could not be found!");
                     this.removeSign(signLoc);

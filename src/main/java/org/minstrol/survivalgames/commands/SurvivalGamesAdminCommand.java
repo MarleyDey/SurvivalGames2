@@ -93,8 +93,10 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                     return;
                 }
 
-                //TODO Continue here
+                Game game = sgPlayer.getActiveGame();
 
+                game.restockChests(true);
+                sender.sendMessage(ChatColor.GREEN + "You have restocked the chests in [" + game.getName() + "]");
                 return;
             }
 

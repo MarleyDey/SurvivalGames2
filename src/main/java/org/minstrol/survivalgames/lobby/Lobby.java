@@ -23,13 +23,13 @@ public class Lobby {
         if (spawnLocation != null) return spawnLocation;
 
         if (lobbyConfig.get("lobby.spawn") == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "Lobby spawn location has not been set!");
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Lobby spawn location has not been set!");
             return null;
         }
 
         String spawnLocString = lobbyConfig.getString("lobby.spawn");
         if (ParseConverter.StringToLocation(spawnLocString) == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "Lobby spawn location string was not valid!");
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Lobby spawn location string was not valid!");
             return null;
         }
 

@@ -46,7 +46,7 @@ public class ParseConverter {
                     Float.valueOf(locStrs[5]),
                     Float.valueOf(locStrs[4]));
         } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "String could not be parsed into a location " +
+            Bukkit.getLogger().log(Level.SEVERE,"[SurvivalGames] " +  "String could not be parsed into a location " +
                     "(world:" + locStrs[0] +
                     " x:" + locStrs[1] + "" +
                     " y:" + locStrs[2] + "" +
@@ -81,7 +81,7 @@ public class ParseConverter {
         try {
             return dateFormat.parse(dateString);
         } catch (ParseException ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "String could not be parsed to date format", ex);
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "String could not be parsed to date format", ex);
         }
         return null;
     }

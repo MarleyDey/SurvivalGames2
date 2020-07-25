@@ -40,7 +40,7 @@ public class SignListeners implements Listener {
         //Check that the game exists
         Game game = SurvivalGames.GetGameManager().getGame(signLines[1]);
         if (game == null) {
-            Bukkit.getLogger().log(Level.WARNING, "On player clicking lobby sign, the game " +
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "On player clicking lobby sign, the game " +
                     signLines[1] + " could not be found!");
             return;
         }
