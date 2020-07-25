@@ -11,6 +11,8 @@ import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.game.util.GameLoader;
+import org.minstrol.survivalgames.players.PlayerManager;
+import org.minstrol.survivalgames.players.SgPlayer;
 import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
 
@@ -70,6 +72,44 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 sender.sendMessage(ChatColor.GREEN + "You have set the lobby spawn point!");
                 return;
             }
+        }
+
+        if (args[0].equalsIgnoreCase("restock")){
+
+            //Restock game player is in
+            if (args.length == 1){
+                if (sender instanceof ConsoleCommandSender){
+                    sender.sendMessage(ChatColor.RED + "Restocking command is not supported by the console! Unless restocking specified game.");
+                    return;
+                }
+
+                Player player = (Player) sender;
+
+                PlayerManager playerManager = SurvivalGames.GetPlayerManager();
+                SgPlayer sgPlayer = playerManager.getSgPlayer(player);
+
+                if (sgPlayer == null){
+                    sender.sendMessage(ChatColor.RED + "You are not currently in a game");
+                    return;
+                }
+
+                //TODO Continue here
+
+                return;
+            }
+
+            //Restock game specified
+            GameManager gameManager = SurvivalGames.GetGameManager();
+            Game game = gameManager.getGame(args[1]);
+
+            if (game == null){
+                sender.sendMessage(ChatColor.RED + "The game " + args[1] + " does not exist!");
+                return;
+            }
+
+            game.restockChests(true);
+            sender.sendMessage(ChatColor.GREEN + "You have restocked the chests in [" + game.getName() + "]");
+            return;
         }
 
         //Remove sub-command
@@ -338,7 +378,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         sender.sendMessage(ChatColor.BLUE +         "-----------" + ChatColor.YELLOW + " SG Admin Help " + ChatColor.BLUE + "----------");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin setup [name] [min-players] [max-players]");
         sender.sendMessage(ChatColor.GRAY +         "    - Start the SG map setup process");
-        sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin delete [name]");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin remove [name]");
         sender.sendMessage(ChatColor.GRAY +         "    - Remove a SG map");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin modify [name]");
         sender.sendMessage(ChatColor.GRAY +         "    - Start the SG map modification process");
@@ -348,7 +388,8 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         sender.sendMessage(ChatColor.GRAY +         "    - Force start the named game");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin forcerestart [name]");
         sender.sendMessage(ChatColor.GRAY +         "    - Force restart the named game");
-        sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin forcerestock [name]");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin restock");
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "/sgadmin restock [name]");
         sender.sendMessage(ChatColor.GRAY +         "    - Force restock all the chests in named game");
         sender.sendMessage(ChatColor.BLUE +         "-------------------------------------------");
     }

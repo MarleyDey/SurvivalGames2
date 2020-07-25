@@ -331,7 +331,7 @@ public class Game {
     /**
      * This will restock all the checks of the map
      */
-    private void restockChests(boolean broadcast) {
+    public void restockChests(boolean broadcast) {
         MapEnvironment.RestockChests(this);
         if (broadcast) this.broadcastMsg("All chests have been restocked!"); //TODO Configurable
 

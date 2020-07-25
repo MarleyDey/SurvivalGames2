@@ -1,5 +1,6 @@
 package org.minstrol.survivalgames.game;
 
+import com.google.common.collect.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.util.ConfigManager;
 
-import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -41,15 +41,15 @@ public class MapEnvironment {
             Chest chest = (Chest) chestLocation.getWorld().getBlockAt(chestLocation);
             Inventory chestInv = chest.getBlockInventory();
 
-            Map<ItemStack, Double> itemProbabiltyMap = GetItemProbabilityMap();
+            Map<ItemStack, Range> itemProbabiltyMap = GetItemProbabilityMap();
 
             //TODO Restock the chest block
 
         }
     }
 
-    private static Map<ItemStack, Double> GetItemProbabilityMap(){
-        Map<ItemStack, Double> itemProbabilityMap = new HashMap<>();
+    private static Map<ItemStack, Range> GetItemProbabilityMap(){
+        Map<ItemStack, Range> itemProbabilityMap = new HashMap<>();
 
         ConfigManager configManager = SurvivalGames.GetConfigManager();
         FileConfiguration config = configManager.getConfig();
@@ -60,7 +60,7 @@ public class MapEnvironment {
         }
 
         List<String> itemProbStrings = config.getStringList("chests.items");
-        double probabilityTotal = 0;
+        int probabilityTotal = 0;
 
         for (String itemProb : itemProbStrings){
             String[] itemProbSplit = itemProb.split(";");
@@ -80,18 +80,23 @@ public class MapEnvironment {
             }
 
             try {
-                Double.valueOf(itemProbSplit[2]);
+                Integer.valueOf(itemProbSplit[2]);
             } catch (NumberFormatException ex){
                 Bukkit.getLogger().log(Level.SEVERE,  itemProbSplit[1] + " is not a parsable probability number from the config!");
                 return null;
             }
 
             int amount = Integer.valueOf(itemProbSplit[1]);
-            double probability = Double.valueOf(itemProbSplit[2]);
+            int probability = Integer.valueOf(itemProbSplit[2]);
+
 
             probabilityTotal += probability;
 
-            itemProbabilityMap.put(new ItemStack(material, amount), probability);
+            Range<Integer> probRange = Range.closed(probabilityTotal, probabilityTotal += probability);
+            itemProbabilityMap.put(new ItemStack(material, amount), probRange);
+            Bukkit.getLogger().log(Level.INFO, "Range: " + probRange.lowerEndpoint() + " to " + probRange.upperEndpoint());
+
+            probabilityTotal -= 1;
         }
 
         if (probabilityTotal != 100){
