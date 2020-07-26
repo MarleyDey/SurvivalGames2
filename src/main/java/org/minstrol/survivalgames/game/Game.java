@@ -203,10 +203,8 @@ public class Game {
      * method unless there is still enough players to start the game.
      */
     private void attemptGameStart() {
-        if (getGameStatus() != GameStatus.WAITING) {
-            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Attempted to start game when it is not in waiting mode!");
-            return;
-        }
+        if (getGameStatus() != GameStatus.WAITING) return;
+
         //Waiting process is over, we can start the game
         this.setGameStatus(GameStatus.STARTING);
 

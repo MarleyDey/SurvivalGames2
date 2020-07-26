@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.util.GameLoader;
+import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
 
 import java.util.ArrayList;
@@ -74,13 +75,13 @@ public class GameManager {
         Game game = gameLoader.loadGame();
 
         if (game == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "The game [" + name + "] could not be loaded!");
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game [" + name + "] could not be loaded!");
             return;
         }
 
         game.waitForPlayers();
 
-        Bukkit.getLogger().log(Level.INFO, "Game loaded: [" + name + "] was successful");
+        Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Game load: [" + name + "] was successful");
 
         games.add(game);
     }
@@ -91,8 +92,16 @@ public class GameManager {
      * @param game game instance to remove
      */
     public void removeGame(Game game) {
-        if (!containsGame(game)) return;
+        if (!this.containsGame(game)) return;
+
         games.remove(game);
+
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        FileConfiguration gamesConfig = configManager.getGameConfig();
+        gamesConfig.set("games.maps." + game.getName(), null);
+
+        configManager.saveGameConfig();
+
     }
 
     /**
@@ -101,9 +110,7 @@ public class GameManager {
      * @param name name of game to remove
      */
     public void removeGame(String name) {
-        if (!this.containsGame(name.toUpperCase())) return;
-
-        games.remove(getGame(name.toUpperCase()));
+        removeGame(getGame(name));
     }
 
     /**
@@ -132,7 +139,7 @@ public class GameManager {
                 = SurvivalGames.GetConfigManager().getGameConfig();
 
         if (gameConfig.get("games.maps") == null) {
-            Bukkit.getLogger().log(Level.WARNING, "No games were found in the game config to load!");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "No games were found in the game config to load!");
             return null;
         }
 
@@ -154,12 +161,12 @@ public class GameManager {
             Game game = gameLoader.loadGame();
 
             if (game == null) {
-                Bukkit.getLogger().log(Level.SEVERE, "The game [" + name + "] could not be loaded!");
+                Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game [" + name + "] could not be loaded!");
                 continue;
             }
 
             games.add(game);
-            Bukkit.getLogger().log(Level.INFO, "Game [" + name + "] has been found and loaded!");
+            Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Game [" + name + "] has been found and loaded!");
 
             //Wait for players to join the game
             game.waitForPlayers();
