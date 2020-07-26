@@ -18,17 +18,23 @@ public class Game {
     private String name;
     private int[] dimensions;
     private Location lobbyLocation;
-    private boolean playersCanMove = true, gracePeriod = false;
-    private int maxPlayers,
+    private boolean
+            playersCanMove = true,
+            gracePeriod = false;
+    private int
+            maxPlayers,
             minPlayers,
             waitingCountdown = 10,
             waitingCountdownTask = 0;
-    private Location[] spawnLocations, chestLocations;
+    private Location[]
+            spawnLocations,
+            chestLocations;
     private GameStatus gameStatus = GameStatus.STOPPED;
     private Plugin plugin;
 
     private PlayerManager playerManager;
     private List<String> players;
+    private Game game = this;
 
     public Game(Location[] spawnLocations, Location[] chestLocations, Location lobbyLocation, String name,
                 int[] dimensions, int minPlayers, int maxPlayers) {
@@ -264,9 +270,9 @@ public class Game {
             waitingCountdown--;
         }, 20L, 20L);
 
-        /**
-         * This is the end of this method, instead the stop method is called
-         * by the player death event when only one player is left
+        /*
+          This is the end of this method, instead the stop method is called
+          by the player death event when only one player is left
          */
     }
 
@@ -288,19 +294,20 @@ public class Game {
 
         this.displayLeaderboard();
 
-        this.sendPlayersToGameLobby();
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            sendPlayersToGameLobby();
 
-        //Remove all Sg Players from the game
-        SurvivalGames.GetPlayerManager().clearGamePlayers(this);
-        players.clear();
+            //Remove all Sg Players from the game
+            SurvivalGames.GetPlayerManager().clearGamePlayers(game);
+            players.clear();
 
-        //Start to reset the map
-        this.setGameStatus(GameStatus.RESETTING);
-        MapEnvironment.ClearDroppedItems(this);
+            //Start to reset the map
+            setGameStatus(GameStatus.RESETTING);
+            MapEnvironment.ClearDroppedItems(game);
 
-        //Reset and restart the game
-        this.restart();
-
+            //Reset and restart the game
+            restart();
+        },80L);
     }
 
     public void forceStop() {
@@ -379,7 +386,12 @@ public class Game {
                 Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game lobby has no spawn point set! Stopping game..");
                 return;
             }
-            sgPlayer.getBukkitPlayer().teleport(spawnLocation);
+            Player player = sgPlayer.getBukkitPlayer();
+
+            player.setGameMode(GameMode.ADVENTURE);
+            player.teleport(spawnLocation);
+            player.setFoodLevel(20);
+            player.setHealth(20);
         }
     }
 
@@ -473,8 +485,6 @@ public class Game {
         }
 
         player.sendMessage(ChatColor.RED + "This game is currently not joinable!");
-
-
     }
 
     /**
@@ -486,6 +496,8 @@ public class Game {
     public void playerLeave(Player player) {
         if (this.getGameStatus() == GameStatus.INGAME) {
             this.broadcastMsg(ChatColor.DARK_GREEN + player.getName() + ChatColor.YELLOW + " has left the game!");
+
+            SurvivalGames.GetPlayerManager().getSgPlayer(player).setAlive(false);
 
             if (getAlivePlayers().size() <= 2) {
                 stop();

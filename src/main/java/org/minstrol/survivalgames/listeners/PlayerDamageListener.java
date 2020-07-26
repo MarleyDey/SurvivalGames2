@@ -51,7 +51,8 @@ public class PlayerDamageListener implements Listener {
             deathLocation.getWorld().strikeLightningEffect(deathLocation);
 
             player.setHealth(20);
-            player.setGameMode(GameMode.SPECTATOR); //TODO Not to set to spectator if game should end because only 1 alive players left
+            player.setFoodLevel(20);
+            player.setGameMode(GameMode.SPECTATOR);
 
             if (event.getEntity().getLastDamageCause() instanceof EntityDamageByEntityEvent) {
                 EntityDamageByEntityEvent nEvent = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();

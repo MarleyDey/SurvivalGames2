@@ -1,3 +1,14 @@
+lobby:
+  teleport-players-to-lobby-on-join: true
+  set-gamemode-on-join: ADVENTURE
+
+chat:
+  format: "&e[SG] %player%&7: &message&"
+  independant-chat: true
+
+messages:
+  test: ""
+
 chests:
   restock-time: 10
   max-items-in-chest: 6
