@@ -15,22 +15,17 @@ public class PlayerMovingListener implements Listener {
     public void on(PlayerMoveEvent event){
         if (event.isCancelled())return;
 
-        Player player = event.getPlayer();
-        SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
+        Location from = event.getFrom();
+        Location to = event.getTo();
 
-        if (sgPlayer == null)return;
+        if ((from.getX() != to.getX()) || (from.getZ() != to.getZ())) {
+            Player player = event.getPlayer();
+            SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
 
-        if (!sgPlayer.getActiveGame().isPlayersCanMove()){
-            Location from = event.getFrom();
-            Location to = event.getTo();
+            if (sgPlayer == null) return;
+            if (sgPlayer.getActiveGame().isPlayersCanMove()) return;
 
-            if (from.getX() != to.getX()) {
-                event.setCancelled(true);
-                return;
-            }
-            if (from.getZ() != to.getZ()) {
-                event.setCancelled(true);
-            }
+            event.setCancelled(true);
         }
     }
 }

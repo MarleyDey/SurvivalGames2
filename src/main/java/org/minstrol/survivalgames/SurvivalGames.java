@@ -25,7 +25,8 @@ public class SurvivalGames extends JavaPlugin implements Listener {
             new SignListeners(),
             new PlayerQuitListener(),
             new PlayerDamageListener(),
-            new PlayerJoinListener()
+            new PlayerJoinListener(),
+            new ChatListener()
     };
 
     private CommandManager commandManager
