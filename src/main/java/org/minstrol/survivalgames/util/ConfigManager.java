@@ -279,8 +279,6 @@ public class ConfigManager {
                     = YamlConfiguration.loadConfiguration(defConfigStream);
 
             config.options().copyDefaults(true);
-            config.options().copyHeader(true);
-            config.options().header("Config File");
             config.setDefaults(defConfig);
         }
 

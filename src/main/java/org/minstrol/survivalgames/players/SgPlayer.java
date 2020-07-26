@@ -11,7 +11,9 @@ public class SgPlayer {
     private String uuid, name;
     private int kills = 0, deaths = 0;
     private Location spawnLocation;
-    private boolean isAlive = true;
+    private boolean
+            isAlive = true,
+            ghost = false;
 
     public SgPlayer(Game game, String uuid, String name){
         this.activeGame = game;
@@ -127,6 +129,14 @@ public class SgPlayer {
      */
     public Location getSpawnLocation(){
         return this.spawnLocation;
+    }
+
+    public boolean isGhost() {
+        return ghost;
+    }
+
+    public void setGhost(boolean ghost) {
+        this.ghost = ghost;
     }
 
     /**

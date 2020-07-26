@@ -39,6 +39,11 @@ public class PlayerDamageListener implements Listener {
             return;
         }
 
+        if (!game.isPlayersCanMove()){
+            event.setCancelled(true);
+            return;
+        }
+
         //Player is about to die
         if (event.getDamage() > player.getHealth()){
             if (!sgPlayer.isAlive()) return;

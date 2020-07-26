@@ -86,7 +86,7 @@ public class SignManager {
                 }
 
                 sign.setLine(2, game.getGameStatus().getFormattedName());
-                sign.setLine(3, "[" + game.getPlayers().size() + "/" + game.getMaxPlayers() + "]");
+                sign.setLine(3, "[" + game.getPlayers(false).size() + "/" + game.getMaxPlayers() + "]");
 
                 sign.update();
             }

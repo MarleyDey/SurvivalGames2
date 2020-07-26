@@ -54,6 +54,14 @@ public class SurvivalGamesAdminCommand extends SgCommand {
             return;
         }
 
+
+        if (args[0].equalsIgnoreCase("debug")){
+            sender.sendMessage("Player manager contains:");
+            for (SgPlayer sgPlayer : SurvivalGames.GetPlayerManager().getPlayers()){
+                sender.sendMessage("- " + sgPlayer.getName() + " Game: [" + sgPlayer.getActiveGame().getName());
+            }
+        }
+
         //Lobby sub-command
         if (args[0].equalsIgnoreCase("lobby")){
             if (args.length == 1){

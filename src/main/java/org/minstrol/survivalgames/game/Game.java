@@ -8,9 +8,7 @@ import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
 import org.minstrol.survivalgames.util.ParseConverter;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 public class Game {
@@ -145,12 +143,17 @@ public class Game {
     /**
      * Gets the Sg player instances of the game
      *
+     * @param includeGhosts Should the list of players include players that are no longer in the game
      * @return List of Sg players
      */
-    public List<SgPlayer> getPlayers() {
+    public List<SgPlayer> getPlayers(boolean includeGhosts) {
         List<SgPlayer> sgPlayers = new ArrayList<>();
-        for (String playerUuid : players) {
-            sgPlayers.add(playerManager.getSgPlayer(playerUuid));
+        for (String playerName : players) {
+            SgPlayer sgPlayer = playerManager.getSgPlayer(playerName, this);
+
+            if (sgPlayer == null) continue;
+            if (!includeGhosts && sgPlayer.isGhost()) continue;
+            sgPlayers.add(sgPlayer);
         }
 
         return sgPlayers;
@@ -163,7 +166,7 @@ public class Game {
      */
     public List<SgPlayer> getAlivePlayers() {
         List<SgPlayer> alivePlayers = new ArrayList<>();
-        for (SgPlayer player : getPlayers()) {
+        for (SgPlayer player : getPlayers(true)) {
             if (player.isAlive()) alivePlayers.add(player);
         }
 
@@ -181,10 +184,10 @@ public class Game {
             return;
         }
 
-        Bukkit.getLogger().log(Level.INFO, "Game " + name + " is waiting for players...");
+        Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Game " + name + " is waiting for players...");
 
         if (plugin == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The plugin instance could not be found!");
 
             this.forceStop();
             return;
@@ -201,7 +204,7 @@ public class Game {
      */
     private void attemptGameStart() {
         if (getGameStatus() != GameStatus.WAITING) {
-            Bukkit.getLogger().log(Level.WARNING, "Attempted to start game when it is not in waiting mode!");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Attempted to start game when it is not in waiting mode!");
             return;
         }
         //Waiting process is over, we can start the game
@@ -209,9 +212,9 @@ public class Game {
 
         this.broadcastMsg(ChatColor.GREEN + "" + ChatColor.BOLD + "Attempting to start the game..."); //TODO Make configurable
         this.playSoundToPlayers(Sound.ENTITY_CAT_BEG_FOR_FOOD, 10, 5);
-        Bukkit.getLogger().log(Level.INFO, "Attempting to start game: [" + name + "]");
+        Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Attempting to start game: [" + name + "]");
 
-        waitingCountdown = 10; //TODO Make configurable
+        waitingCountdown = 15; //TODO Make configurable
 
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             if (waitingCountdown <= 0) {
@@ -240,6 +243,7 @@ public class Game {
 
 
     private void start() {
+        this.setGameStatus(GameStatus.INGAME);
         this.restockChests(false);
 
         //Assign each player a spawn position
@@ -258,11 +262,10 @@ public class Game {
 
 
                 playersCanMove = true;
-                this.setGameStatus(GameStatus.INGAME);
                 this.playSoundToPlayers(Sound.ENTITY_PLAYER_LEVELUP, 10, 5);
                 this.broadcastMsg(ChatColor.GREEN + "" + ChatColor.BOLD + "GO GO GO");
 
-                Bukkit.getLogger().log(Level.INFO, "Game: [" + name + "] has started w/ " + players.size() + " players!");
+                Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Game: [" + name + "] has started w/ " + players.size() + " players!");
                 return;
             }
 
@@ -281,14 +284,14 @@ public class Game {
 
         Plugin plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
         if (plugin == null) {
-            Bukkit.getLogger().log(Level.SEVERE, "The plugin instance could not be found!");
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The plugin instance could not be found!");
 
             this.forceStop();
             return;
         }
 
         if (getGameStatus() != GameStatus.INGAME) {
-            Bukkit.getLogger().log(Level.WARNING, "Attempted to stop a game while it is not in-game!");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Attempted to stop a game while it is not in-game!");
             return;
         }
 
@@ -307,7 +310,7 @@ public class Game {
 
             //Reset and restart the game
             restart();
-        },80L);
+        }, 80L);
     }
 
     public void forceStop() {
@@ -346,7 +349,7 @@ public class Game {
 
     private void assignPlayerSpawns() {
         int i = 0;
-        for (SgPlayer sgPlayer : getPlayers()) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
             if (spawnLocations.length <= i) {
                 Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "There are more players than spawn points! Stopping game..");
                 return;
@@ -361,7 +364,7 @@ public class Game {
      * This will send all the players of the game back to their spawn points
      */
     private void sendPlayersToSpawn() {
-        for (SgPlayer sgPlayer : getPlayers()) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
             Location spawnLocation = sgPlayer.getSpawnLocation();
 
             if (spawnLocation == null) {
@@ -379,13 +382,16 @@ public class Game {
      * This will send all the players of the game back to game lobby
      */
     private void sendPlayersToGameLobby() {
-        for (SgPlayer sgPlayer : getPlayers()) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
+            if (sgPlayer == null) continue;
             Location spawnLocation = SurvivalGames.GetLobby().getSpawnLocation();
 
             if (spawnLocation == null) {
                 Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The game lobby has no spawn point set! Stopping game..");
                 return;
             }
+
+            if (sgPlayer.getBukkitPlayer() == null) continue;
             Player player = sgPlayer.getBukkitPlayer();
 
             player.setGameMode(GameMode.ADVENTURE);
@@ -399,13 +405,14 @@ public class Game {
      * This will send all the players of the game back to the lobby location
      */
     private void sendPlayersToLobby() {
-        for (SgPlayer sgPlayer : getPlayers()) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
+            if (sgPlayer == null) continue;
             sgPlayer.getBukkitPlayer().teleport(lobbyLocation);
         }
     }
 
-    private void playSoundToPlayers(Sound sound, int v1, int v2){
-        for (SgPlayer sgPlayer : getPlayers()) {
+    private void playSoundToPlayers(Sound sound, int v1, int v2) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
             Player player = sgPlayer.getBukkitPlayer();
 
             player.playSound(player.getLocation(), sound, v1, v2);
@@ -418,7 +425,7 @@ public class Game {
      * @param gamemode gamemode of player
      */
     private void setPlayersGamemode(GameMode gamemode) {
-        for (SgPlayer sgPlayer : getPlayers()) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
             sgPlayer.getBukkitPlayer().setGameMode(gamemode);
         }
     }
@@ -427,8 +434,9 @@ public class Game {
         this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + " \n-------  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE + "-------\n \n" +
                 ChatColor.GREEN + "" + ChatColor.BOLD + "     Final Survivor: " + ChatColor.YELLOW + this.getAlivePlayers().get(0).getName() + "\n ");
         SgPlayer[] players = this.getLeaderboard();
-        for (int i = 0; i < players.length; i++) {
+        for (int i = 0; i < (players.length < 3 ? players.length : 3); i++) {
             SgPlayer sgPlayer = players[i];
+            if (sgPlayer.getKills() == 0)continue;
 
             this.broadcastMsg(ChatColor.YELLOW + "       " + ChatColor.BOLD + (i + 1) + ChatColor.BLUE + " - " + ChatColor.RESET + ChatColor.WHITE + sgPlayer.getName()
                     + ChatColor.YELLOW + " (" + ChatColor.AQUA + sgPlayer.getKills() + ChatColor.YELLOW + ") kill(s)");
@@ -436,15 +444,15 @@ public class Game {
         this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + " \n-------------------------\n ");
     }
 
-    public SgPlayer[] getLeaderboard() {
-        List<SgPlayer> players = getPlayers();
+    private SgPlayer[] getLeaderboard() {
+        List<SgPlayer> players = getPlayers(true);
 
         players.sort(Comparator.comparingInt(SgPlayer::getKills).reversed());
         return ParseConverter.SgPlayerListToArray(players);
     }
 
     public void broadcastMsg(String message) {
-        for (SgPlayer sgPlayer : getPlayers()) {
+        for (SgPlayer sgPlayer : getPlayers(false)) {
             sgPlayer.getBukkitPlayer().sendMessage(message);
         }
     }
@@ -456,35 +464,38 @@ public class Game {
      * @return if the player joined successfully
      */
     public void playerJoin(Player player) {
-        if (players.contains(player.getUniqueId().toString())) return;
-
-        //Player joins while game is waiting for players
-        if (getGameStatus() == GameStatus.WAITING) {
-
-            //Check that there is enough spaces left for player
-            if (players.size() >= maxPlayers) {
-                player.sendMessage(ChatColor.RED + "The game you are trying to join is full!"); //TODO Make configurable
-                return;
-            }
-
-            players.add(player.getUniqueId().toString());
-            playerManager.addPlayer(player, this);
-
-            this.broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
-                    player.getName() + ChatColor.YELLOW + " has joined the game!");
-
-            //Teleport player to waiting lobby
-            player.teleport(lobbyLocation);
-            player.setGameMode(GameMode.ADVENTURE);
-            player.setHealth(20);
-            player.setFoodLevel(20);
-
-            //If the minimum players requireed to start the game is reached then attempt to start the game
-            if (players.size() >= minPlayers) attemptGameStart();
+        if (players.contains(player.getName())) {
+            player.sendMessage(ChatColor.RED + "You cannot return to this game once left!");
             return;
         }
 
-        player.sendMessage(ChatColor.RED + "This game is currently not joinable!");
+        //Player joins while game is waiting for players
+        if (this.getGameStatus() != GameStatus.WAITING && this.getGameStatus() != GameStatus.STARTING) {
+            player.sendMessage(ChatColor.RED + "This game is currently not joinable!");
+            return;
+        }
+
+        //Check that there is enough spaces left for player
+        if (players.size() >= maxPlayers) {
+            player.sendMessage(ChatColor.RED + "The game you are trying to join is full!"); //TODO Make configurable
+            return;
+        }
+
+        players.add(player.getName());
+        playerManager.addPlayer(player, this);
+
+        this.broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
+                player.getName() + ChatColor.YELLOW + " has joined the game!");
+
+        //Teleport player to waiting lobby
+        player.teleport(lobbyLocation);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+
+        //If the minimum players requireed to start the game is reached then attempt to start the game
+        if (players.size() >= minPlayers) attemptGameStart();
+
     }
 
     /**
@@ -494,17 +505,20 @@ public class Game {
      * @return if the player left successfully
      */
     public void playerLeave(Player player) {
+        this.broadcastMsg(ChatColor.DARK_GREEN + player.getName() + ChatColor.YELLOW + " has left the game!");
+
         if (this.getGameStatus() == GameStatus.INGAME) {
-            this.broadcastMsg(ChatColor.DARK_GREEN + player.getName() + ChatColor.YELLOW + " has left the game!");
+            SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
+            sgPlayer.setAlive(false);
+            sgPlayer.setGhost(true);
 
-            SurvivalGames.GetPlayerManager().getSgPlayer(player).setAlive(false);
-
-            if (getAlivePlayers().size() <= 2) {
+            if (getAlivePlayers().size() < 2) {
                 stop();
             }
+            return;
         }
 
-        playerManager.removePlayer(player);
-        players.remove(player.getUniqueId().toString());
+        players.remove(player.getName());
+        SurvivalGames.GetPlayerManager().removePlayer(player);
     }
 }
