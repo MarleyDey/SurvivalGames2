@@ -1,24 +1,25 @@
 package org.minstrol.survivalgames.game;
 
 import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.lobby.Lobby;
 import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
 import org.minstrol.survivalgames.util.ParseConverter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 
 public class Game {
 
     private String name;
     private int[] dimensions;
-    private Location lobbyLocation;
-    private boolean
-            playersCanMove = true,
-            gracePeriod = false;
     private int
             maxPlayers,
             minPlayers,
@@ -27,25 +28,24 @@ public class Game {
     private Location[]
             spawnLocations,
             chestLocations;
-    private GameStatus gameStatus = GameStatus.STOPPED;
     private Plugin plugin;
-
-    private PlayerManager playerManager;
-    private List<String> players;
     private Game game = this;
+    private List<String> players;
+    private Location lobbyLocation;
+    private boolean playersCanMove = true;
+    private GameStatus gameStatus = GameStatus.STOPPED;
 
     public Game(Location[] spawnLocations, Location[] chestLocations, Location lobbyLocation, String name,
                 int[] dimensions, int minPlayers, int maxPlayers) {
 
         this.plugin = Bukkit.getPluginManager().getPlugin("SurvivalGames");
-        this.playerManager = SurvivalGames.GetPlayerManager();
         this.spawnLocations = spawnLocations;
         this.chestLocations = chestLocations;
         this.lobbyLocation = lobbyLocation;
-        this.name = name;
         this.dimensions = dimensions;
         this.maxPlayers = maxPlayers;
         this.minPlayers = minPlayers;
+        this.name = name;
 
         //Initialise starting values of game instance
         this.players = new ArrayList<>();
@@ -132,13 +132,15 @@ public class Game {
         return minPlayers;
     }
 
+    /**
+     * Gets if the players should be able to move
+     *
+     * @return can players move
+     */
     public boolean isPlayersCanMove() {
         return playersCanMove;
     }
 
-    public boolean isGracePeriod() {
-        return gracePeriod;
-    }
 
     /**
      * Gets the Sg player instances of the game
@@ -149,7 +151,7 @@ public class Game {
     public List<SgPlayer> getPlayers(boolean includeGhosts) {
         List<SgPlayer> sgPlayers = new ArrayList<>();
         for (String playerName : players) {
-            SgPlayer sgPlayer = playerManager.getSgPlayer(playerName, this);
+            SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(playerName, this);
 
             if (sgPlayer == null) continue;
             if (!includeGhosts && sgPlayer.isGhost()) continue;
@@ -180,19 +182,16 @@ public class Game {
      */
     void waitForPlayers() {
         if (getGameStatus() == GameStatus.WAITING || getGameStatus() == GameStatus.INGAME) {
-            Bukkit.getLogger().log(Level.WARNING, "Game is already running!");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Game is already running!");
             return;
         }
-
         Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Game " + name + " is waiting for players...");
 
         if (plugin == null) {
             Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "The plugin instance could not be found!");
-
             this.forceStop();
             return;
         }
-
         //Start waiting for the players to join
         this.setGameStatus(GameStatus.WAITING);
     }
@@ -208,19 +207,21 @@ public class Game {
         //Waiting process is over, we can start the game
         this.setGameStatus(GameStatus.STARTING);
 
-        this.broadcastMsg(ChatColor.GREEN + "" + ChatColor.BOLD + "Attempting to start the game..."); //TODO Make configurable
+        FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
+
+        this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.attempting-start"), null));
         this.playSoundToPlayers(Sound.ENTITY_CAT_BEG_FOR_FOOD, 10, 5);
+
         Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Attempting to start game: [" + name + "]");
 
-        waitingCountdown = 15; //TODO Make configurable
-
+        waitingCountdown = config.getInt("events.game.waiting-countdown");
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             if (waitingCountdown <= 0) {
                 Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
                 //Check there is still enough players to start the game
                 if (players.size() < minPlayers) {
-                    this.broadcastMsg(ChatColor.YELLOW + "Not enough players to start game! Waiting again...");
+                    this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.insufficient-players"), null));
                     this.playSoundToPlayers(Sound.ENTITY_VILLAGER_NO, 10, 5);
                     this.waitForPlayers();
                     return;
@@ -232,7 +233,9 @@ public class Game {
             }
 
             if (waitingCountdown % 5 == 0 || waitingCountdown <= 3) {
-                this.broadcastMsg(ChatColor.YELLOW + "Starting game in " + ChatColor.GREEN + waitingCountdown); //TODO  Make configurable
+                this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.waiting-game-countdown"),
+                        new HashMap<String, String>(){{put("%count%", "" + waitingCountdown);}}));
+
                 this.playSoundToPlayers(Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 7);
             }
             waitingCountdown--;
@@ -240,34 +243,40 @@ public class Game {
     }
 
 
+    /**
+     * Called to start the game, this will teleport players to their spawn
+     * and begins the starting countdown.
+     */
     private void start() {
-        this.setGameStatus(GameStatus.INGAME);
-        this.restockChests(false);
+        FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
 
+        this.setGameStatus(GameStatus.INGAME);
+
+        this.restockChests(config, false);
         //Assign each player a spawn position
         this.assignPlayerSpawns();
-
         //Send players to their spawn positions
         playersCanMove = false;
         this.sendPlayersToSpawn();
 
-        this.broadcastMsg(ChatColor.AQUA + " \nWelcome to Survival Games! Have fun.\n ");
+        this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.starting-message"), null));
 
-        waitingCountdown = 5; //TODO Make configurable
+        waitingCountdown = config.getInt("events.game.starting-countdown");
         waitingCountdownTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             if (waitingCountdown <= 0) {
                 Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
-
                 playersCanMove = true;
                 this.playSoundToPlayers(Sound.ENTITY_PLAYER_LEVELUP, 10, 5);
-                this.broadcastMsg(ChatColor.GREEN + "" + ChatColor.BOLD + "GO GO GO");
+                this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.start-message"), null));
 
                 Bukkit.getLogger().log(Level.INFO, "[SurvivalGames] " + "Game: [" + name + "] has started w/ " + players.size() + " players!");
                 return;
             }
 
-            broadcastMsg(ChatColor.YELLOW + "Prepare to run in " + ChatColor.RED + waitingCountdown); //TODO  Make configurable
+            this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.starting-game-countdown"),
+                    new HashMap<String, String>(){{put("%count%", "" + waitingCountdown);}}));
+
             waitingCountdown--;
         }, 20L, 20L);
 
@@ -277,6 +286,10 @@ public class Game {
          */
     }
 
+    /**
+     * This will stop the game including any countdowns, display the leaderboard and
+     * clear up the map.
+     */
     public void stop() {
         Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
@@ -311,20 +324,31 @@ public class Game {
         }, 80L);
     }
 
-    public void forceStop() {
+    /**
+     * This will force stop the game and send all players back
+     * to the lobby, and will not restart the game
+     */
+     void forceStop() {
         Bukkit.getScheduler().cancelTask(waitingCountdownTask);
 
         this.setGameStatus(GameStatus.STOPPED);
 
-        Location spawnLocation = SurvivalGames.GetLobby().getSpawnLocation();
-        if (spawnLocation != null) {
-            this.sendPlayersToGameLobby();
+        Lobby lobby = SurvivalGames.GetLobby();
+        if (lobby != null) {
+            Location spawnLocation = lobby.getSpawnLocation();
+            if (spawnLocation != null) {
+                this.sendPlayersToGameLobby();
+            }
         }
 
         SurvivalGames.GetPlayerManager().clearGamePlayers(this);
         players.clear();
     }
 
+    /**
+     * This will clear the map and restart the game to wait for
+     * players to join
+     */
     private void restart() {
         if (getGameStatus() != GameStatus.RESETTING) {
             Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Attempted to reset a game while it is not in resetting state!");
@@ -339,9 +363,9 @@ public class Game {
     /**
      * This will restock all the checks of the map
      */
-    public void restockChests(boolean broadcast) {
+    public void restockChests(FileConfiguration config, boolean broadcast) {
         MapEnvironment.RestockChests(this);
-        if (broadcast) this.broadcastMsg("All chests have been restocked!"); //TODO Configurable
+        if (broadcast)  this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.chest-restock"), null));
 
     }
 
@@ -409,6 +433,13 @@ public class Game {
         }
     }
 
+    /**
+     * This will player a sound to all the players in the game
+     *
+     * @param sound sound to play
+     * @param v1 Volume
+     * @param v2 Pitch
+     */
     private void playSoundToPlayers(Sound sound, int v1, int v2) {
         for (SgPlayer sgPlayer : getPlayers(false)) {
             Player player = sgPlayer.getBukkitPlayer();
@@ -428,6 +459,10 @@ public class Game {
         }
     }
 
+    /**
+     * This will display the leaderboard of the last survivor and
+     * the top three kills.
+     */
     private void displayLeaderboard() {
         this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + " \n-------  " + ChatColor.YELLOW + "Leaderboard  " + ChatColor.BLUE + "-------\n \n" +
                 ChatColor.GREEN + "" + ChatColor.BOLD + "     Final Survivor: " + ChatColor.YELLOW + this.getAlivePlayers().get(0).getName() + "\n ");
@@ -442,6 +477,11 @@ public class Game {
         this.broadcastMsg(ChatColor.BLUE + "" + ChatColor.BOLD + " \n-------------------------\n ");
     }
 
+    /**
+     * This returns a sorted array of the kills player
+     *
+     * @return sorted array
+     */
     private SgPlayer[] getLeaderboard() {
         List<SgPlayer> players = getPlayers(true);
 
@@ -449,6 +489,11 @@ public class Game {
         return ParseConverter.SgPlayerListToArray(players);
     }
 
+    /**
+     * This will send a message to all the players in the game
+     *
+     * @param message The string message to send to players
+     */
     public void broadcastMsg(String message) {
         for (SgPlayer sgPlayer : getPlayers(false)) {
             sgPlayer.getBukkitPlayer().sendMessage(message);
@@ -462,28 +507,36 @@ public class Game {
      * @return if the player joined successfully
      */
     public void playerJoin(Player player) {
+        FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
         if (players.contains(player.getName())) {
-            player.sendMessage(ChatColor.RED + "You cannot return to this game once left!");
+            player.sendMessage(ParseConverter.StrTran(config.getString("events.game.player-returning-error"),
+                    null));
             return;
         }
 
         //Player joins while game is waiting for players
         if (this.getGameStatus() != GameStatus.WAITING && this.getGameStatus() != GameStatus.STARTING) {
-            player.sendMessage(ChatColor.RED + "This game is currently not joinable!");
+            player.sendMessage(ParseConverter.StrTran(config.getString("events.game.not-joinable-error"),
+                    null));
             return;
         }
 
         //Check that there is enough spaces left for player
         if (players.size() >= maxPlayers) {
-            player.sendMessage(ChatColor.RED + "The game you are trying to join is full!"); //TODO Make configurable
+            player.sendMessage(ParseConverter.StrTran(config.getString("events.game.full-game-error"),
+                    null));
             return;
         }
 
         players.add(player.getName());
-        playerManager.addPlayer(player, this);
+        SurvivalGames.GetPlayerManager().addPlayer(player, this);
 
-        this.broadcastMsg(ChatColor.AQUA + "[" + players.size() + "/" + maxPlayers + "] " + ChatColor.DARK_GREEN +
-                player.getName() + ChatColor.YELLOW + " has joined the game!");
+        this.broadcastMsg(ParseConverter.StrTran(config.getString("events.game.player-join"),
+                new HashMap<String, String>(){{
+                    put("%player_count%", "" + players.size());
+                    put("%max_players%", "" + maxPlayers);
+                    put("%player%", player.getName());
+                }}));
 
         //Teleport player to waiting lobby
         player.teleport(lobbyLocation);
@@ -503,10 +556,13 @@ public class Game {
      * @return if the player left successfully
      */
     public void playerLeave(Player player) {
-        this.broadcastMsg(ChatColor.DARK_GREEN + player.getName() + ChatColor.YELLOW + " has left the game!");
+        this.broadcastMsg(ParseConverter.StrTran(SurvivalGames.GetConfigManager().getConfig().getString("events.game.player-leave"),
+                new HashMap<String, String>(){{ put("%player%", player.getName()); }}));
+
+        PlayerManager playerManager = SurvivalGames.GetPlayerManager();
 
         if (this.getGameStatus() == GameStatus.INGAME) {
-            SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
+            SgPlayer sgPlayer = playerManager.getSgPlayer(player);
             sgPlayer.setAlive(false);
             sgPlayer.setGhost(true);
 
@@ -517,6 +573,11 @@ public class Game {
         }
 
         players.remove(player.getName());
-        SurvivalGames.GetPlayerManager().removePlayer(player);
+        playerManager.removePlayer(player);
+
+        Lobby lobby = SurvivalGames.GetLobby();
+
+        if (lobby.getSpawnLocation() == null)return;
+        player.teleport(SurvivalGames.GetLobby().getSpawnLocation());
     }
 }

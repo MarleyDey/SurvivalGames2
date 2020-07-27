@@ -94,14 +94,12 @@ public class GameManager {
     public void removeGame(Game game) {
         if (!this.containsGame(game)) return;
 
-        games.remove(game);
-
         ConfigManager configManager = SurvivalGames.GetConfigManager();
-        FileConfiguration gamesConfig = configManager.getGameConfig();
-        gamesConfig.set("games.maps." + game.getName(), null);
 
+        configManager.getGameConfig().set("games.maps." + game.getName(), null);
         configManager.saveGameConfig();
 
+        games.remove(game);
     }
 
     /**
@@ -135,8 +133,7 @@ public class GameManager {
      * @return All games names
      */
     public String[] getGameNames() {
-        FileConfiguration gameConfig
-                = SurvivalGames.GetConfigManager().getGameConfig();
+        FileConfiguration gameConfig = SurvivalGames.GetConfigManager().getGameConfig();
 
         if (gameConfig.get("games.maps") == null) {
             Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "No games were found in the game config to load!");

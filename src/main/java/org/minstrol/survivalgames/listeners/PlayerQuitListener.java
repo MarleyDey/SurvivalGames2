@@ -15,8 +15,7 @@ public class PlayerQuitListener implements Listener {
     public void on(PlayerQuitEvent event){
         Player player = event.getPlayer();
 
-        PlayerManager playerManager = SurvivalGames.GetPlayerManager();
-        SgPlayer sgPlayer = playerManager.getSgPlayer(player);
+        SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
 
         if (sgPlayer != null){
             sgPlayer.getActiveGame().playerLeave(player);

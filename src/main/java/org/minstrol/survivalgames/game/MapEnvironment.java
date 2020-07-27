@@ -14,7 +14,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.minstrol.survivalgames.SurvivalGames;
-import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
 
 import java.util.*;
@@ -29,11 +28,12 @@ public class MapEnvironment {
      * @param game The game with the chests to restock
      */
     public static void RestockChests(Game game) {
-        ConfigManager configManager = SurvivalGames.GetConfigManager();
-        FileConfiguration config = configManager.getConfig();
+        Map<ItemStack, Range<Integer>> itemProbabiltyMap = GetItemProbabilityMap();
 
         Location[] chestLocations = game.getChestLocations();
         Random random = new Random();
+
+        FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
 
         int maxItems = config.getInt("chests.max-items-in-chest");
         int minItems = config.getInt("chests.min-items-in-chest");
@@ -81,7 +81,7 @@ public class MapEnvironment {
                 //If lands on same item, tries up to 5 times to randomly pick another item instead
                 for (int attempt = 0; attempt < 5; attempt++) {
 
-                    ItemStack itemToAdd = GetRandomChestItem(random);
+                    ItemStack itemToAdd = GetRandomChestItem(random, itemProbabiltyMap);
 
                     if (itemToAdd == null) {
                         Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "Chests could not be restocked due to a config error!");
@@ -97,9 +97,14 @@ public class MapEnvironment {
         }
     }
 
-    private static ItemStack GetRandomChestItem(Random random){
-        Map<ItemStack, Range<Integer>> itemProbabiltyMap = GetItemProbabilityMap();
-
+    /**
+     * This will get a random item from the probability map
+     *
+     * @param random java Random instance
+     *
+     * @return The itemstack randomly picked
+     */
+    private static ItemStack GetRandomChestItem(Random random, Map<ItemStack, Range<Integer>> itemProbabiltyMap){
         if (itemProbabiltyMap == null){
             Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " +"Something went wrong with the chest items list!");
             return null;
@@ -115,11 +120,15 @@ public class MapEnvironment {
         return null;
     }
 
+    /**
+     * This gets the Map of the probability items to be added to the chests, this map
+     * includes the itemstack to add with a value associated probability.
+     *
+     * @return Map of probability items
+     */
     private static Map<ItemStack, Range<Integer>> GetItemProbabilityMap(){
         Map<ItemStack, Range<Integer>> itemProbabilityMap = new HashMap<>();
-
-        ConfigManager configManager = SurvivalGames.GetConfigManager();
-        FileConfiguration config = configManager.getConfig();
+        FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
 
         if (config.get("chests.items") == null){
             Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Chests have no items specified to fill with!");
@@ -217,6 +226,11 @@ public class MapEnvironment {
         return itemProbabilityMap;
     }
 
+    /**
+     * This gets the size of the items list
+     *
+     * @return Size of list
+     */
     private static int GetProbabilityMapSize(){
         FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
 

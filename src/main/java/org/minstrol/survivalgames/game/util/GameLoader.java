@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
-import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
 
@@ -17,12 +16,10 @@ import java.util.logging.Level;
 public class GameLoader {
 
     private String gameName, configPath;
-    private FileConfiguration gameConfig;
 
     public GameLoader(String name) {
         this.gameName = name;
         this.configPath = "games.maps." + name + ".";
-        this.gameConfig = SurvivalGames.GetConfigManager().getGameConfig();
     }
 
     /**
@@ -99,14 +96,11 @@ public class GameLoader {
     }
 
     public static void DeleteGame(String name) {
-        GameManager gameManager = SurvivalGames.GetGameManager();
-
         ConfigManager configManager = SurvivalGames.GetConfigManager();
         FileConfiguration gamesConfig = configManager.getGameConfig();
 
         gamesConfig.set("games.maps." + name.toUpperCase(), null);
-        gameManager.removeGame(name);
-
+        SurvivalGames.GetGameManager().removeGame(name);
     }
 
     /**
@@ -140,7 +134,7 @@ public class GameLoader {
             return null;
         }
 
-        return new Game(spawnLocations, chestLocations, lobbyLocation, gameName, getMapDimensions(gameConfig, configPath), this.getMinPlayers(), this.getMaxPlayers());
+        return new Game(spawnLocations, chestLocations, lobbyLocation, gameName, getMapDimensions(SurvivalGames.GetConfigManager().getGameConfig(), configPath), this.getMinPlayers(), this.getMaxPlayers());
     }
 
     /**
@@ -149,7 +143,7 @@ public class GameLoader {
      * @return Locations of chests
      */
     private Location[] getChestLocations() {
-        return ConfigManager.GetLocations(gameConfig, configPath + "chests");
+        return ConfigManager.GetLocations(SurvivalGames.GetConfigManager().getGameConfig(), configPath + "chests");
     }
 
     /**
@@ -158,7 +152,7 @@ public class GameLoader {
      * @return Locations of spawns
      */
     private Location[] getSpawnLocations() {
-        return ConfigManager.GetLocations(gameConfig, configPath + "spawns");
+        return ConfigManager.GetLocations(SurvivalGames.GetConfigManager().getGameConfig(), configPath + "spawns");
     }
 
     /**
@@ -167,7 +161,7 @@ public class GameLoader {
      * @return Location of lobby
      */
     private Location getLobbyLocation() {
-        return ConfigManager.GetLocation(gameConfig, configPath + "lobby-location");
+        return ConfigManager.GetLocation(SurvivalGames.GetConfigManager().getGameConfig(), configPath + "lobby-location");
     }
 
     /**
@@ -176,7 +170,7 @@ public class GameLoader {
      * @return Maximum amount of players
      */
     private int getMaxPlayers() {
-        return gameConfig.getInt(configPath + ".options.max-players");
+        return SurvivalGames.GetConfigManager().getGameConfig().getInt(configPath + ".options.max-players");
     }
 
     /**
@@ -185,6 +179,6 @@ public class GameLoader {
      * @return Minimum players to start game
      */
     private int getMinPlayers() {
-        return gameConfig.getInt(configPath + ".options.min-players");
+        return SurvivalGames.GetConfigManager().getGameConfig().getInt(configPath + ".options.min-players");
     }
 }

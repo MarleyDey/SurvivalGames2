@@ -12,8 +12,6 @@ import java.util.logging.Level;
 public class Lobby {
 
     private Location spawnLocation;
-    private ConfigManager configManager = SurvivalGames.GetConfigManager();
-    private FileConfiguration lobbyConfig = configManager.getLobbyConfig();
 
     public Lobby() {
         spawnLocation = getSpawnLocation();
@@ -21,6 +19,8 @@ public class Lobby {
 
     public Location getSpawnLocation() {
         if (spawnLocation != null) return spawnLocation;
+
+        FileConfiguration lobbyConfig = SurvivalGames.GetConfigManager().getLobbyConfig();
 
         if (lobbyConfig.get("lobby.spawn") == null) {
             Bukkit.getLogger().log(Level.SEVERE, "[SurvivalGames] " + "Lobby spawn location has not been set!");
@@ -40,7 +40,8 @@ public class Lobby {
     public void setSpawnLocation(Location location) {
         spawnLocation = location;
 
-        lobbyConfig.set("lobby.spawn", ParseConverter.LocationToString(location));
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        configManager.getLobbyConfig().set("lobby.spawn", ParseConverter.LocationToString(location));
         configManager.saveLobbyConfig();
     }
 }
