@@ -142,3 +142,102 @@ Adding a new item is as simple as copy and pasting one of the examples and incre
 ### The Chat System
 
 <strong>NOTE!</strong> You have the option to enable or disable this
+
+When enabled, the players can only talk amongst themselves in games, and if they are in the lobby, then the players in games can only see chat messages from other players in their game.
+
+### A Config Overview
+
+This is an overview of the example config that has helpful comments to understand the config options more clearly
+
+```YAML
+# Should the plugin be enabled
+enabled: true
+
+# Lobby options
+lobby:
+  # Should players be teleported to the spawn on joinning the server
+  teleport-players-to-lobby-on-join: true
+  
+  # The gamemode to set players on joining the server
+  set-gamemode-on-join: ADVENTURE
+
+# Chat options
+chat:
+  # Independent chats for each games
+  per-game-chat: true
+
+# Configurable messages for the commands of the plugin
+commands:
+  no-permission: "&4You do not have permission to do this!"
+
+  sg:
+    zero-arguments: "&ePlease use &b'/sg help' &eto see all command options!"
+    specify-game: "&4Please specify the game name!"
+    game-does-not-exist: "&4The game [%game%] does not exist!"
+    already-in-game: "&4You are already in a game!"
+    not-in-game: "&4You are currently not in a game!"
+  sgadmin:
+    zero-arguments: "&ePlease use &b'/sgadmin help' &eto see all command options!"
+    set-lobby-spawn: "&2The set spawn lobby sub-command is not supported by the console!"
+    chests-restocked: "&2You have restocked the chests in [%game%]!"
+    specify-game-to-remove: "&4Please specify the game you would like to remove!"
+    game-removed: "&2You have removed the game [%game%]!"
+
+# The configurable messages for the event of the plugin
+events:
+  game:
+    # The countdown time in seconds when waiting in lobby
+    waiting-countdown: 15
+    
+    # The countdown time in seconds when starting the game
+    starting-countdown: 5
+    
+    attempting-start: "&2&lAttempting to start the game..."
+    insufficient-players: "&eNot enough players to start game! Waiting again..."
+    waiting-game-countdown: "&eStarting game in &2%count%"
+    starting-message: " \n&bWelcome to Survival Games! Have fun.\n "
+    starting-game-countdown: "&ePrepare to run in &4%count%&e!"
+    start-message: "&2&lGO GO GO"
+
+    chest-restock: "&2All Chests have been restocked!"
+
+    player-returning-error: "&4 You cannot return to this game once left!"
+    not-joinable-error: "&4This game is currently not joinable!"
+    full-game-error: "&4The game you are trying to join is full!"
+
+    player-join: "&b[%player_count%/%max_players%] &2%player% &ehas joined the game!"
+    player-leave: "&2%player% &ehas left the game!"
+
+    player-killed: "&a%player% &7was killed by &4%killer%"
+    player-died: "&4%player% &ehas died!"
+
+# The section on the chests
+chests:
+  # The time in minutes for the chest to restock after the game starts
+  restock-time: 10
+  
+  # The maximum amount of items that can be added to the chest
+  max-items-in-chest: 6
+  
+  # The minimum amount of items that are added to the chest
+  min-items-in-chest: 3
+  
+  # Items that can be added to the chests
+  items:
+    1:
+      # Material of item
+      material: DIRT
+      
+      # The item amount
+      amount: 12
+      
+      # The probability of the item being added to the chest
+      probability: 80
+    2:
+      material: DIAMOND_SWORD
+      amount: 1
+      probability: 20
+      enchantments:
+        - DAMAGE_ALL;3
+        - DURABILITY;1
+```
