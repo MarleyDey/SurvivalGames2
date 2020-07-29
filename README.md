@@ -92,6 +92,8 @@ So to set up a sign, use the following format:
  [name]
  ```
  
+ ![Sign](https://i.imgur.com/Hyk71Wh.png "Example of a set up sign")
+ 
  ```[SG]``` is always required at the top of the sign
  
  ```[name]``` is the name of the map
