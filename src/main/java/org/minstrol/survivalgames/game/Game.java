@@ -8,7 +8,9 @@ import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
 import org.minstrol.survivalgames.util.ParseConverter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 
 public class Game {
@@ -490,6 +492,7 @@ public class Game {
         player.setGameMode(GameMode.ADVENTURE);
         player.setHealth(20);
         player.setFoodLevel(20);
+        player.getInventory().clear();
 
         //If the minimum players requireed to start the game is reached then attempt to start the game
         if (players.size() >= minPlayers) attemptGameStart();

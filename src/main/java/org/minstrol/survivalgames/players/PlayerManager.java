@@ -2,6 +2,7 @@ package org.minstrol.survivalgames.players;
 
 import org.bukkit.entity.Player;
 import org.minstrol.survivalgames.game.Game;
+import org.minstrol.survivalgames.players.inventory.InventoryHold;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +10,11 @@ import java.util.List;
 public class PlayerManager {
 
     private List<SgPlayer> players;
+    private List<InventoryHold> playersInventories;
 
     public PlayerManager() {
         players = new ArrayList<>();
+        playersInventories = new ArrayList<>();
     }
 
     /**
@@ -63,6 +66,15 @@ public class PlayerManager {
     public void addPlayer(SgPlayer sgPlayer) {
         if (this.containsPlayer(sgPlayer)) return;
         players.add(sgPlayer);
+
+        InventoryHold invHold = getInvHoldOfPlayer(sgPlayer.getName());
+        if (invHold != null)return;
+        if (sgPlayer.getBukkitPlayer() == null)return;
+
+        invHold = new InventoryHold(sgPlayer.getName());
+        invHold.storeInventory(sgPlayer.getBukkitPlayer().getInventory());
+
+        playersInventories.add(invHold);
     }
 
     /**
@@ -74,6 +86,14 @@ public class PlayerManager {
      */
     public void addPlayer(Player player, Game game) {
         players.add(new SgPlayer(game, player.getUniqueId().toString(), player.getName()));
+
+        InventoryHold invHold = getInvHoldOfPlayer(player.getName());
+        if (invHold != null)return;
+
+        invHold = new InventoryHold(player.getName());
+        invHold.storeInventory(player.getInventory());
+
+        playersInventories.add(invHold);
     }
 
     /**
@@ -84,6 +104,14 @@ public class PlayerManager {
     public void removePlayer(SgPlayer sgPlayer) {
         if (!this.containsPlayer(sgPlayer)) return;
         players.remove(sgPlayer);
+
+        InventoryHold invHold = getInvHoldOfPlayer(sgPlayer.getName());
+        if (invHold == null)return;
+        if (sgPlayer.getBukkitPlayer() == null)return;
+
+        invHold.retrieveInventory(sgPlayer.getBukkitPlayer());
+
+        playersInventories.remove(invHold);
     }
 
     /**
@@ -95,6 +123,12 @@ public class PlayerManager {
         if (!this.containsPlayer(player)) return;
         players.remove(getSgPlayer(player));
 
+        InventoryHold invHold = getInvHoldOfPlayer(player.getName());
+        if (invHold == null)return;
+
+        invHold.retrieveInventory(player);
+
+        playersInventories.remove(invHold);
     }
 
     public List<SgPlayer> getPlayers() {
@@ -168,6 +202,12 @@ public class PlayerManager {
             if (sgPlayer.getActiveGame() != game)continue;
 
             editPlayers.remove(sgPlayer);
+
+            InventoryHold invHold = getInvHoldOfPlayer(sgPlayer.getName());
+            if (invHold == null)return;
+            if (sgPlayer.getBukkitPlayer() == null)return;
+
+            invHold.retrieveInventory(sgPlayer.getBukkitPlayer());
         }
 
         players = editPlayers;
@@ -187,5 +227,12 @@ public class PlayerManager {
                 gamePlayers.add(sgPlayer);
         }
         return gamePlayers;
+    }
+
+    private InventoryHold getInvHoldOfPlayer(String name){
+        for (InventoryHold invHold : playersInventories){
+            if (invHold.getPlayerName().equals(name))return invHold;
+        }
+        return null;
     }
 }
