@@ -38,6 +38,7 @@ public class InventoryHold{
         for (int i = 0; i < size; i++){
             ItemStack is = itemsMap.get(i);
             inventory.setItem(i, is);
+
         }
     }
 
