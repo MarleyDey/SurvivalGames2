@@ -90,6 +90,12 @@ public class PlayerDamageListener implements Listener {
 
                     killer.playSound(killer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 8);
 
+                    player.sendMessage(ParseConverter.StrTran(config.getString("events.game.player-killed-receiver"),
+                            new HashMap<String, String>(){{
+                                put("%player%", player.getName());
+                                put("%killer%", killer.getName());
+                            }}));
+
                     int kills = sgKiller.getKills();
                     sgKiller.setKills(++kills);
                 }

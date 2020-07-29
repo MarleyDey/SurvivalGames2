@@ -281,6 +281,7 @@ public class MapEnvironment {
                     Collection<Entity> entities = world.getNearbyEntities(loc, 0.5, 0.5, 0.5);
                     for (Entity entity : entities) {
                         if (!entity.isOnGround()) continue;
+                        if (entity.getType().isAlive())continue;
                         entity.remove();
                     }
                 }

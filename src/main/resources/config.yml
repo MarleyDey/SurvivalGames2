@@ -44,6 +44,7 @@ events:
     player-leave: "&2%player% &ehas left the game!"
 
     player-killed: "&a%player% &7was killed by &4%killer%"
+    player-killed-receiver: "&d-----------------------------\n             &a&lYou Died!\n \n&r&eUse /sg leave to leave the game \n \n&d-----------------------------"
     player-died: "&4%player% &ehas died!"
 
 chests:

@@ -208,6 +208,7 @@ public class PlayerManager {
             if (sgPlayer.getBukkitPlayer() == null)return;
 
             invHold.retrieveInventory(sgPlayer.getBukkitPlayer());
+            playersInventories.remove(invHold);
         }
 
         players = editPlayers;

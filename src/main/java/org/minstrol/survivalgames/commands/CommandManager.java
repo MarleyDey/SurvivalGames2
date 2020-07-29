@@ -38,7 +38,7 @@ public class CommandManager implements CommandExecutor {
 
             if (!commandSender.hasPermission(sgCommand.getPermission())){
                 commandSender.sendMessage(ParseConverter.StrTran(SurvivalGames.GetConfigManager().getConfig()
-                                .getString("events.game.player-died"),
+                                .getString("commands.no-permission"),
                         null));
                 continue;
             }

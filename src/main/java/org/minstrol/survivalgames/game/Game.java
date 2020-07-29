@@ -544,6 +544,8 @@ public class Game {
         player.setHealth(20);
         player.setFoodLevel(20);
 
+        player.getInventory().clear();
+
         //If the minimum players requireed to start the game is reached then attempt to start the game
         if (players.size() >= minPlayers) attemptGameStart();
 
@@ -571,6 +573,8 @@ public class Game {
             }
             return;
         }
+
+        player.getInventory().clear();
 
         players.remove(player.getName());
         playerManager.removePlayer(player);
