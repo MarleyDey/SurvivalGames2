@@ -1,5 +1,6 @@
 # SurvivalGames
-#### [Link to project on Spigot](https://www.spigotmc.org/)
+#### ~~[Link to project on Spigot](https://www.spigotmc.org/)~~
+Project will not be publically released until further notice
 
 ## Features
 * Lightweight
@@ -90,6 +91,8 @@ So to set up a sign, use the following format:
   [SG]
  [name]
  ```
+ 
+ ![Sign](https://i.imgur.com/Hyk71Wh.png "Example of a set up sign")
  
  ```[SG]``` is always required at the top of the sign
  
