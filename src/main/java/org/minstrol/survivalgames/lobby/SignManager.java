@@ -21,24 +21,18 @@ import java.util.logging.Level;
 public class SignManager {
 
     private Plugin plugin;
-    private ConfigManager configManager;
-    private FileConfiguration lobbyConfig;
     private int signUpdatingTask = 0;
     private boolean isUpdatingTaskActive = false;
 
     public SignManager(Plugin plugin) {
         this.plugin = plugin;
 
-        configManager = SurvivalGames.GetConfigManager();
-        lobbyConfig = configManager.getLobbyConfig();
-
-
         //Start updating the lobby signs every half-second
         this.updateSignsTask();
     }
 
     public List<Location> getSignLocations() {
-        Location[] locationStrs = ConfigManager.GetLocations(lobbyConfig, "lobby.signs");
+        Location[] locationStrs = ConfigManager.GetLocations(SurvivalGames.GetConfigManager().getLobbyConfig(), "lobby.signs");
 
         if (locationStrs == null) {
             Bukkit.getLogger().log(Level.WARNING, "[SurvivalGames] " + "No sign location were found in the lobby!");
@@ -99,6 +93,9 @@ public class SignManager {
     }
 
     public void addSign(Location location) {
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        FileConfiguration lobbyConfig = configManager.getLobbyConfig();
+
         if (lobbyConfig.get("lobby.signs") == null) {
             List<String> signLocs = new ArrayList<>();
             signLocs.add(ParseConverter.LocationToString(location));
@@ -117,6 +114,9 @@ public class SignManager {
     }
 
     public void removeSign(Location location) {
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        FileConfiguration lobbyConfig = configManager.getLobbyConfig();
+
         if (lobbyConfig.get("lobby.signs") == null) return;
         List<String> signLocs = lobbyConfig.getStringList("lobby.signs");
 

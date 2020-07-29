@@ -17,6 +17,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     private static PlayerManager playerManager;
     private static SignManager signManager;
     private static GameManager gameManager;
+    private CommandManager commandManager;
 
     private static Lobby lobby;
 
@@ -28,9 +29,6 @@ public class SurvivalGames extends JavaPlugin implements Listener {
             new PlayerJoinListener(),
             new ChatListener()
     };
-
-    private CommandManager commandManager
-            = new CommandManager();
 
     private String[] commandNames = new String[]{
             "sgadmin",
@@ -81,9 +79,16 @@ public class SurvivalGames extends JavaPlugin implements Listener {
     public void onEnable() {
         //Initialise Managers
         configManager = new ConfigManager(this);
+
+        if (!configManager.getConfig().getBoolean("enabled")){
+            this.getPluginLoader().disablePlugin(this);
+            return;
+        }
+
         signManager = new SignManager(this);
         playerManager = new PlayerManager();
         gameManager = new GameManager();
+        commandManager = new CommandManager();
 
         lobby = new Lobby();
 
@@ -96,6 +101,7 @@ public class SurvivalGames extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        if (gameManager == null)return;
         GetGameManager().closeGames();
         GetSignManager().stopUpdatingSigns();
     }

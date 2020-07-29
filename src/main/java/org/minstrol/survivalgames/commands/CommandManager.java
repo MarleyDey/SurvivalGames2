@@ -5,6 +5,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.minstrol.survivalgames.SurvivalGames;
+import org.minstrol.survivalgames.util.ParseConverter;
 
 public class CommandManager implements CommandExecutor {
 
@@ -35,7 +37,9 @@ public class CommandManager implements CommandExecutor {
             }
 
             if (!commandSender.hasPermission(sgCommand.getPermission())){
-                commandSender.sendMessage(ChatColor.RED + "You do not have permission to do this!");
+                commandSender.sendMessage(ParseConverter.StrTran(SurvivalGames.GetConfigManager().getConfig()
+                                .getString("events.game.player-died"),
+                        null));
                 continue;
             }
 

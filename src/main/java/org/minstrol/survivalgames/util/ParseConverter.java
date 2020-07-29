@@ -1,6 +1,7 @@
 package org.minstrol.survivalgames.util;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.minstrol.survivalgames.players.SgPlayer;
 
@@ -9,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class ParseConverter {
@@ -114,5 +116,15 @@ public class ParseConverter {
         }
 
         return r;
+    }
+
+    public static String StrTran(String str, Map<String, String> placeHolders){
+        String result = ChatColor.translateAlternateColorCodes('&', str);
+
+        if (placeHolders == null)return result;
+
+        for (String keyPlaceHolder: placeHolders.keySet())
+            result = result.replaceAll(keyPlaceHolder, placeHolders.get(keyPlaceHolder));
+        return result;
     }
 }

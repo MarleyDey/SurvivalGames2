@@ -22,7 +22,6 @@ import java.util.logging.Level;
 
 public class SignListeners implements Listener {
 
-
     @EventHandler(priority = EventPriority.LOW)
     public void on(PlayerInteractEvent event){
         Player player = event.getPlayer();
@@ -67,8 +66,7 @@ public class SignListeners implements Listener {
         event.setLine(1, game.getName());
         event.getBlock().getState().update();
 
-        SignManager signManager = SurvivalGames.GetSignManager();
-        signManager.addSign(event.getBlock().getLocation());
+        SurvivalGames.GetSignManager().addSign(event.getBlock().getLocation());
 
         event.getPlayer().sendMessage(ChatColor.GREEN + "You have set up a SG lobby sign!");
     }

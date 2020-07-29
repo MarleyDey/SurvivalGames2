@@ -1,7 +1,7 @@
 package org.minstrol.survivalgames.listeners;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,13 +16,22 @@ public class ChatListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void on(AsyncPlayerChatEvent event){
+
+        PlayerManager playerManager = SurvivalGames.GetPlayerManager();
+        FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
+
+        //Check if per game chat is a
+        if (!config.getBoolean("chat.per-game-chat")){
+            return;
+        }
+
         Player player = event.getPlayer();
         String format = String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage());
 
-        PlayerManager playerManager = SurvivalGames.GetPlayerManager();
         SgPlayer sgPlayer = playerManager.getSgPlayer(player);
 
         if (event.isCancelled())return;
+        if (!config.getBoolean("chat.per-game-chat"))return;
         event.setCancelled(true);
 
         if (sgPlayer != null) {
@@ -32,7 +41,7 @@ public class ChatListener implements Listener {
             /* Player is in a game and so if they talk in chat,
             only the players in the game should see it. */
 
-                game.broadcastMsg(ChatColor.AQUA + "[SG] " + ChatColor.RESET + format); //TODO Configure this from config
+                game.broadcastMsg(format); //TODO Configure this from config
                 return;
             }
         }

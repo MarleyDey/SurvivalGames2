@@ -9,8 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.lobby.Lobby;
+import org.minstrol.survivalgames.util.ConfigManager;
 
 public class PlayerJoinListener implements Listener {
+
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void on(PlayerJoinEvent event) {
@@ -20,7 +22,6 @@ public class PlayerJoinListener implements Listener {
         if (lobby.getSpawnLocation() == null) return;
 
         FileConfiguration config = SurvivalGames.GetConfigManager().getConfig();
-
 
         boolean spawnOnJoin = config.getBoolean("lobby.teleport-players-to-lobby-on-join");
 

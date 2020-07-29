@@ -11,10 +11,11 @@ import org.minstrol.survivalgames.SurvivalGames;
 import org.minstrol.survivalgames.game.Game;
 import org.minstrol.survivalgames.game.GameManager;
 import org.minstrol.survivalgames.game.util.GameLoader;
-import org.minstrol.survivalgames.players.PlayerManager;
 import org.minstrol.survivalgames.players.SgPlayer;
 import org.minstrol.survivalgames.util.ConfigManager;
 import org.minstrol.survivalgames.util.ParseConverter;
+
+import java.util.HashMap;
 
 public class SurvivalGamesAdminCommand extends SgCommand {
 
@@ -41,10 +42,12 @@ public class SurvivalGamesAdminCommand extends SgCommand {
     }
 
     public void execute(CommandSender sender, Command command, String s, String[] args) {
+        ConfigManager configManager = SurvivalGames.GetConfigManager();
+        FileConfiguration config = configManager.getConfig();
 
         //No arguments, suggest help command
         if (args.length == 0){
-            sender.sendMessage(ChatColor.YELLOW + "Please use '/sgadmin help' to see all admin commands");
+            sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sgadmin.zero-arguments"), null));
             return;
         }
 
@@ -57,7 +60,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
         //Lobby sub-command
         if (args[0].equalsIgnoreCase("lobby")){
             if (args.length == 1){
-                sendLobbyHelpMessage(sender);
+                this.sendLobbyHelpMessage(sender);
                 return;
             }
 
@@ -69,10 +72,12 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 Player player = (Player) sender;
 
                 SurvivalGames.GetLobby().setSpawnLocation(player.getLocation());
-                sender.sendMessage(ChatColor.GREEN + "You have set the lobby spawn point!");
+                sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sgadmin.set-lobby-spawn"), null));
                 return;
             }
         }
+
+        GameManager gameManager = SurvivalGames.GetGameManager();
 
         if (args[0].equalsIgnoreCase("restock")){
 
@@ -84,52 +89,55 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 }
 
                 Player player = (Player) sender;
-
-                PlayerManager playerManager = SurvivalGames.GetPlayerManager();
-                SgPlayer sgPlayer = playerManager.getSgPlayer(player);
+                SgPlayer sgPlayer = SurvivalGames.GetPlayerManager().getSgPlayer(player);
 
                 if (sgPlayer == null){
-                    sender.sendMessage(ChatColor.RED + "You are not currently in a game");
+                    sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sg.not-in-game"), null));
                     return;
                 }
 
                 Game game = sgPlayer.getActiveGame();
 
-                game.restockChests(true);
-                sender.sendMessage(ChatColor.GREEN + "You have restocked the chests in [" + game.getName() + "]");
+                game.restockChests(config,true);
+                sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sgadmin.chests-restocked"),
+                        new HashMap<String, String>(){{put("%game%", game.getName());}}));
                 return;
             }
 
             //Restock game specified
-            GameManager gameManager = SurvivalGames.GetGameManager();
-            Game game = gameManager.getGame(args[1]);
+            Game game =  gameManager.getGame(args[1]);
 
             if (game == null){
-                sender.sendMessage(ChatColor.RED + "The game " + args[1] + " does not exist!");
+                sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sg.game-does-not-exist"),
+                        new HashMap<String, String>(){{ put("%game%", args[0]); }}));
                 return;
             }
 
-            game.restockChests(true);
-            sender.sendMessage(ChatColor.GREEN + "You have restocked the chests in [" + game.getName() + "]");
+            game.restockChests(config,true);
+            sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sgadmin.chests-restocked"),
+                    new HashMap<String, String>(){{put("%game%", game.getName());}}));
             return;
         }
 
         //Remove sub-command
         if (args[0].equalsIgnoreCase("remove")){
             if (args.length == 1){
-                sender.sendMessage(ChatColor.RED + "Please specify the game you would like to remove!");
+                sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sgadmin.specify-game-to-remove"), null));
                 return;
             }
 
-            GameManager gameManager = SurvivalGames.GetGameManager();
             Game game = gameManager.getGame(args[1]);
 
             if (game == null){
-                sender.sendMessage(ChatColor.RED + "The game " + args[1] + " does not exist!");
+                sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sg.game-does-not-exist"),
+                        new HashMap<String, String>(){{ put("%game%", game.getName()); }}));
                 return;
             }
 
+            sender.sendMessage(ParseConverter.StrTran(config.getString("commands.sg.game-removed"),
+                    new HashMap<String, String>(){{ put("%game%", game.getName()); }}));
             gameManager.removeGame(game);
+            return;
         }
 
         //Setup sub-command
@@ -142,7 +150,6 @@ public class SurvivalGamesAdminCommand extends SgCommand {
 
             String gamePath = "games.maps." + settingUpGameName.toUpperCase() + ".";
 
-            ConfigManager configManager = SurvivalGames.GetConfigManager();
             FileConfiguration gamesConfig = configManager.getGameConfig();
 
             if (settingGame){
@@ -157,7 +164,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 }
 
                 //Check name argument
-                if (SurvivalGames.GetGameManager().getGame(args[1]) != null){
+                if (gameManager.getGame(args[1]) != null){
                     sender.sendMessage(ChatColor.RED + "This game already exists!");
                     return;
                 }
@@ -369,7 +376,7 @@ public class SurvivalGamesAdminCommand extends SgCommand {
                 sender.sendMessage(" \n" +
                         ChatColor.YELLOW + "Attempting to load the game!");
                 //Attempt to load the game
-                SurvivalGames.GetGameManager().addGame(settingUpGameName);
+                gameManager.addGame(settingUpGameName);
 
                 settingUpGameName = "";
             }
