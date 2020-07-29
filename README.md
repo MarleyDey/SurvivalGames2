@@ -1,5 +1,6 @@
 # SurvivalGames
-#### [Link to project on Spigot](https://www.spigotmc.org/)
+#### ~~[Link to project on Spigot](https://www.spigotmc.org/)~~
+Project will not be publically released until further notice
 
 ## Features
 * Lightweight
